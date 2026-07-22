@@ -21,4 +21,7 @@ agi/latent/Random Resolution Latent (RndResLatent.py)
 Generates random latent image with resolution (832x1216), (1216x832) and (1024x1024) (hard coded, change if you need)
 the node outputs W and H  dimensions as Int ,latent image and resolution string in (W)x(H) format
 
+agi/string/Auto Break (auto_break.py)
+automaticly inserts a BREAK every 75 tokens (change in max_tokens widget). Text output with BREAK commands and total tokens count outputs. For use  with ComfyUI's "CLIPTextEncode with BREAK syntax" node
+
 
