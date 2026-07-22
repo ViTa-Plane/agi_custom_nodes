@@ -1,7 +1,7 @@
 A collection of custom ComfyUI nodes used in my personal workflows. Tested on ComfyUI 0.22.0 with ComfyUI_frontend v1.43.18
 
 Usage:
-in ComfyUI  interface right click --> add custom nodes --> agi
+in ComfyUI  interface right click --> add node --> agi
 
 
 descriptions:
