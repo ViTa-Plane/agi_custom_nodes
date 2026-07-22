@@ -1,17 +1,16 @@
 A collection of custom ComfyUI nodes used in my personal workflows. Tested on ComfyUI 0.22.0 with ComfyUI_frontend v1.43.18
 
-Instalation:
+<b>Instalation:</b>
 download the repository as a zip and extract in ComfyUI\custom_nodes\agi_custom_nodes
 restart ComfyUI 
  
-Usage:
+<b>Usage:</b>
 in ComfyUI  interface right click --> add node --> agi/
 
 
-descriptions:
+<b>descriptions:</b>
 
 agi/image/SDXL Resolution Selector (sdxl_resolutions.py)
-
 A ComfyUI custom node that selects standard SDXL resolutions from JSON and toggles between Landscape and Portrait orientation.
 
 agi/latent/SDXL Empty Latent Image (sdxl_empty_latent.py)
