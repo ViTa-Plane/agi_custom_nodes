@@ -99,7 +99,7 @@
 
 <h2 id="license">License</h2>
 <p>
-  This project is licensed under the <a href="LICENSE">GNU (GPL) License</a>.
+  This project is licensed under the <a href="LICENSE">GNU General Public License (GPL)</a>.
 </p>
 
 
