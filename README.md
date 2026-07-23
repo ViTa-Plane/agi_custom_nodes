@@ -33,6 +33,7 @@
     <li><b>String Concatenate</b> (<code>string_concatenate.py</code>) – Dynamicly combines multiple string inputs into a single output using the <a href="https://github.com/cozy-comfyui/cozy_ex_dynamic">Dynamic Inputs for ComfyUI</a> method.</li>
     <li><b>String Cleaner</b> (<code>string_cleaner_node.py</code>) – Sanitizes and cleans string inputs.</li>
     <li><b>String Uncomment</b> (<code>string_uncomment_node.py</code>) – Filters out commented lines from prompt strings.</li>
+    <li><b>Replace {text1} & {text2} </b> (<code>string_placeholder_replacer.py</code>) – A comfyui node that takes an input text/ string and replaces all placeholders with syntax {text1} and {text2} with a string typed in a text1 and text2 box widgets. Uses standard Python .replace() which is very fast and won't touch other curly braces (like standard ComfyUI wildcard tags).</li>
   </ul>
 </details>
 
@@ -41,6 +42,19 @@
   <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
   <ul>
     <li><b>Text Line Reader v2</b> (<code>line_reader.py</code> / <code>line_reader.js</code>) – Advanced incrementer / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
+        <li><b>Text Transformer (Formatting)</b> (<code>json_utils.py</code>) – Utility node that modifies a input string with toggles to:
+    <li>1. Replace spaces with underscores</li>
+    <li>2. Convert text to lowercase.</li>
+  </li>
+  </ul>
+</details>
+
+<details open>
+  <summary><b><code>agi/JSON</code> — JSON Utilities</b></summary>
+  <p>JSON Utilities Nodes .</p>
+  <ul>
+    <li><b>JSON Name Set Selector</b> (<code>json_utils.py</code> / <code>names_set.json</code>) – ComfyUI node that reads names_set.json from its directory and outputs
+    the selected element as a string.</li>
   </ul>
 </details>
 
