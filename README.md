@@ -68,7 +68,7 @@
   <p>Flow-control nodes for iteration, timing, and execution management.</p>
   <ul>
     <li><b>Auto Break</b> (<code>auto_break.py</code>) – Automatically inserts a <code>BREAK</code> statement every 75 tokens (configurable via the <code>max_tokens</code> widget). Outputs text with <code>BREAK</code> commands and total token counts. Intended for use with ComfyUI's "CLIPTextEncode with BREAK syntax" node.</li>
-    <li><b>Timeout Node</b> (<code>timeout_node.py</code>) – Sets maximum execution limits to prevent hanging operations.</li>
+    <li><b>Timeout Node</b> (<code>timeout_node.py</code>) – A debug tool.Generates delay in ms and a random integer</li>
     <li><b>Integer Incrementer</b> (<code>IntIncrementer.py</code> / <code>int_incrementer.js</code>) – Step/counter node for loops and seed management.</li>
   </ul>
 </details>
