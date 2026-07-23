@@ -42,7 +42,7 @@
   <p>Nodes designed for generating empty latents based on predefined SDXL aspect ratios and resolution presets.</p>
   <ul>
     <li><b>SDXL Empty Latent</b> (<code>sdxl_empty_latent.py</code>) – Generates empty latents targeting standard SDXL resolutions. Reads resolutions from <code>sdxl_resolutions.json</code>.</li>
-    <li><b>Random Resolution Latent</b> (<code>RndResLatent.py</code>) – Outputs latents with randomized resolution presets: <code>832x1216</code>, <code>1216x832</code>, and <code>1024x1024</code> (hardcoded; modify source if needed). Outputs width (W) and height (H) dimensions as integers, latent image, and resolution string in <code>(W)x(H)</code> format.</li>
+    <li><b>Random Resolution Latent</b> (<code>RndResLatent.py</code>) – Outputs latents with randomized SDXL resolution presets: <code>832x1216</code>, <code>1216x832</code>, and <code>1024x1024</code> (hardcoded; modify source if needed). Outputs width (W) and height (H) dimensions as integers, latent image, and resolution string in <code>(W)x(H)</code> format.</li>
   </ul>
 </details>
 
