@@ -74,7 +74,7 @@
 </details>
 
 <details open>
-  <summary><b><code>agi/utils</code> — Workflow Introspection</b></summary>
+  <summary><b><code>agi/utils</code> — Workflow Helper utilities</b></summary>
   <p>Helper utilities to extract metadata and widget values across the graph.Tools need node ID, enable in ComfyUI settings › Lite Graph › Node › Node ID badge mode › Show All</p>
   <ul>
     <li><b>Get KSampler Info</b> (<code>GetKSamplerInfo.py</code>) – Extracts sampler configurations (steps, CFG, sampler name, seed).You need to provide your workflow's KSampler node ID</li>
