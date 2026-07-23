@@ -42,7 +42,7 @@
   <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
   <ul>
     <li><b>Text Line Reader v2</b> (<code>line_reader.py</code> / <code>line_reader.js</code>) – Advanced incrementer / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
-        <li><b>Text Transformer (Formatting)</b> (<code>json_utils.py</code>) – Utility node that modifies a input string with toggles to:
+        <li><b>Text ormatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:
     <li>1. Replace spaces with underscores</li>
     <li>2. Convert text to lowercase.</li>
   </li>
