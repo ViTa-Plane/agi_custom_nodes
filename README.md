@@ -18,7 +18,7 @@
 <hr />
 
 <h2 id="usage">Usage</h2>
-<p>In the ComfyUI interface: <b> right-click &rarr; Add Node</b> &rarr; <b>agi/</b></p>
+<p>In the ComfyUI interface: <b> right-click &rarr; Add Node</b> &rarr; <b>agi </b></p>
 
 <hr />
 
