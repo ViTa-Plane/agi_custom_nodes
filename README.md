@@ -28,9 +28,9 @@
   <summary><b><code>agi/string</code> — Text &amp; String Utilities</b></summary>
   <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
   <ul>
-    <li><b>String Composer</b> (<code>StringComposer.py</code>) – Dynamic string templating and composition.</li>
+    <li><b>String Composer (Pre/App)</b> (<code>StringComposer.py</code>) – String templating and composition with prepend, append and separator.</li>
     <li><b>String Splitter</b> (<code>StringSplitter.py</code>) – Splits text inputs using customizable delimiters.</li>
-    <li><b>String Concatenate</b> (<code>string_concatenate.py</code>) – Combines multiple string inputs into a single output.</li>
+    <li><b>Dynamic String Concatenate</b> (<code>string_concatenate.py</code>) – Combines multiple string inputs into a single output.Uses <a href="https://github.com/cozy-comfyui/cozy_ex_dynamic"> Dynamic Inputs for ComfyUI</a> method .</li>
     <li><b>String Cleaner</b> (<code>string_cleaner_node.py</code>) – Sanitizes and cleans string inputs.</li>
     <li><b>String Uncomment</b> (<code>string_uncomment_node.py</code>) – Filters out commented lines from prompt strings.</li>
     <li><b>Line Reader</b> (<code>line_reader.py</code> / <code>line_reader.js</code>) – Reads text line-by-line across generations.</li>
