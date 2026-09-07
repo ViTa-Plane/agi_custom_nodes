@@ -38,17 +38,23 @@
 </details>
 
 <details open>
-  <summary><b><code>agi/text</code> — Text &amp; Prompt Utilities</b></summary>
-  <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
+  <summary><b><code>agi/text</code> — Text </b></summary>
+  <p>Nodes for manipulating, formatting text and strings.</p>
   <ul>
-    <li><b>Text Line Reader v2</b> (<code>line_reader.py</code> / <code>line_reader.js</code>) – Advanced incrementer / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
-        <li><b>Text Formatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:
+      <li><b>Text Formatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:
     <li>1. Replace spaces with underscores</li>
     <li>2. Convert text to lowercase.</li>
   </li>
   </ul>
 </details>
 
+<details open>
+  <summary><b><code>agi/Prompt Utility</code> — Prompt Utilities</b></summary>
+  <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
+  <ul>
+    <li><b>Prompt Line Selector</b> (<code>prompt_line_selector_node.py</code> / <code>prompt_line_selector_node.js</code>) – Advanced incrementor / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
+  </ul>
+</details>
 <details open>
   <summary><b><code>agi/JSON</code> — JSON Utilities</b></summary>
   <p>JSON Utilities Nodes .</p>
