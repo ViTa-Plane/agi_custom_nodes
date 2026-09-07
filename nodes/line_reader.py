@@ -1,5 +1,6 @@
 import os
 import folder_paths
+# deprecated node, use the reworked 'prompt_line_selector_node'
 
 class LineReader_v2:
     @classmethod
@@ -26,7 +27,7 @@ class LineReader_v2:
     RETURN_TYPES = ("STRING", "STRING", "INT", "STRING")
     RETURN_NAMES = ("text", "index_str", "file_max", "last_comment")
     FUNCTION = "process_file"
-    CATEGORY = "agi/text"
+    CATEGORY = "agi/deprecated"
 
     def process_file(self, source, file_list, manual_path, index, start_index, max_index, skip_empty_lines, ignore_comments, text_override=""):
         # 1. Load Data
@@ -83,5 +84,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LineReader_v2": "Text Line Reader v2"
+    "LineReader_v2": "Text Line Reader v2 (deprecated)"
 }
