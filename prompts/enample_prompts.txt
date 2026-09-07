@@ -1,0 +1,13 @@
+#enample prompts for "prompt_line_selector_node"
+
+#Cinematic photography
+Cinematic photography of a weathered explorer standing at the edge of a colossal, ancient stone gate hidden inside a lush jungle. Sunbeams filtering through dense canopy, realistic moss texture, mist rising from the ground, award-winning composition, shot on 35mm lens, highly detailed.
+
+#Dark fantasy illustration
+Dark fantasy illustration of a rogue necromancer channeling purple ethereal energy from an ornate obsidian staff. Dark medieval throne room, floating glowing embers, detailed leather armor, highly intricate runes, cinematic lighting, conceptual art style.
+
+#Cyberpunk street style
+Cyberpunk street style profile portrait of a woman with neon blue cybernetic hair and glowing facial augments. Heavy rain, blurred city background with flickering neon signs, reflection of lights on wet pavement, octane render style, dramatic rim light
+
+#Whimsical 3D render
+Whimsical 3D render of a tiny steampunk goldfish operating a miniature brass submarine inside a glass fishbowl. Macro photography, intricate gears, bubbling water effects, warm cozy lighting, depth of field, stylized claymation aesthetic.
