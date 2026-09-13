@@ -16,7 +16,6 @@ app.registerExtension({
 
         if (!sourceWidget) return;
 
-        // Backup original draw and size methods for canvas widgets
         node.widgets.forEach((w) => {
             if (w && !w._origDraw) {
                 w._origDraw = w.draw;
@@ -24,7 +23,6 @@ app.registerExtension({
             }
         });
 
-        // Dedicated cache for user-typed text
         node._userTextCache = textWidget ? textWidget.value : "";
         node._lastSource = sourceWidget.value;
 
@@ -52,11 +50,10 @@ app.registerExtension({
             const targetText = customText !== null ? customText : (textWidget ? textWidget.value : "");
             const lineCount = calculateValidLines(targetText);
             const maxIdx = Math.max(0, lineCount - 1);
-            
+
             if (startIndexWidget) startIndexWidget.value = 0;
             if (endIndexWidget) endIndexWidget.value = maxIdx;
-            if (indexWidget) indexWidget.value = 0;
-            
+
             updateLineCountLimits(lineCount);
         };
 
@@ -85,10 +82,9 @@ app.registerExtension({
             }
         };
 
-        // Complete canvas & DOM visibility toggle
         const setWidgetVisibility = (widget, visible) => {
             if (!widget) return;
-            
+
             if (visible) {
                 widget.draw = widget._origDraw;
                 widget.computeSize = widget._origComputeSize;
@@ -99,8 +95,8 @@ app.registerExtension({
                     }
                 }
             } else {
-                widget.draw = () => {}; // Suppress Canvas Drawing
-                widget.computeSize = () => [0, -4]; // Zero-out layout height allocation
+                widget.draw = () => {};
+                widget.computeSize = () => [0, -4];
                 if (widget.inputEl) {
                     widget.inputEl.style.display = "none";
                     if (widget.inputEl.parentElement) {
@@ -129,9 +125,8 @@ app.registerExtension({
                 node._lastSource = currentSource;
             }
 
-            // Apply draw suppression & zero-size calculation
             setWidgetVisibility(filenameWidget, !isTextMode);
-            setWidgetVisibility(indexWidget, currentMode === "fixed");
+            setWidgetVisibility(indexWidget, true);
             setWidgetVisibility(startIndexWidget, currentMode !== "fixed");
             setWidgetVisibility(endIndexWidget, currentMode !== "fixed");
 
@@ -143,20 +138,15 @@ app.registerExtension({
             app.graph?.setDirtyCanvas(true, true);
         };
 
-        const bindDOMInputListener = () => {
-            if (textWidget && textWidget.inputEl && !textWidget._hasInputListener) {
-                textWidget.inputEl.addEventListener("input", (e) => {
-                    if (sourceWidget.value === "text widget") {
-                        node._userTextCache = e.target.value;
-                        textWidget.value = e.target.value;
-                        updateLineCountLimits(calculateValidLines(e.target.value));
-                    }
-                });
-                textWidget._hasInputListener = true;
+        api.addEventListener("agi_prompt_selector_executed", (event) => {
+            if (event.detail && event.detail.node == node.id) {
+                if (indexWidget && event.detail.index !== undefined) {
+                    indexWidget.value = event.detail.index;
+                    app.graph?.setDirtyCanvas(true, true);
+                }
             }
-        };
+        });
 
-        // Callbacks
         const origSourceCallback = sourceWidget.callback;
         sourceWidget.callback = function (value) {
             if (origSourceCallback) origSourceCallback.apply(this, arguments);
@@ -169,6 +159,14 @@ app.registerExtension({
                 if (origModeCallback) origModeCallback.apply(this, arguments);
                 resetIndices();
                 relayoutNode();
+            };
+        }
+
+        if (indexWidget) {
+            const origIndexCallback = indexWidget.callback;
+            indexWidget.callback = function (value) {
+                if (origIndexCallback) origIndexCallback.apply(this, arguments);
+                app.graph?.setDirtyCanvas(true, true);
             };
         }
 
@@ -193,16 +191,6 @@ app.registerExtension({
             };
         }
 
-        const origOnSerialize = node.onSerialize;
-        node.onSerialize = function (o) {
-            if (sourceWidget.value === "text widget" && textWidget) {
-                const liveVal = textWidget.inputEl ? textWidget.inputEl.value : node._userTextCache;
-                textWidget.value = liveVal;
-                node._userTextCache = liveVal;
-            }
-            if (origOnSerialize) origOnSerialize.apply(this, arguments);
-        };
-
         const origOnConfigure = node.onConfigure;
         node.onConfigure = function () {
             if (origOnConfigure) origOnConfigure.apply(this, arguments);
@@ -210,12 +198,10 @@ app.registerExtension({
                 node._userTextCache = textWidget.value;
             }
             relayoutNode();
-            bindDOMInputListener();
         };
 
         setTimeout(() => {
             relayoutNode();
-            bindDOMInputListener();
             if (textWidget) {
                 updateLineCountLimits(calculateValidLines(textWidget.value));
             }
