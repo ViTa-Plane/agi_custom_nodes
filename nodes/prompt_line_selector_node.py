@@ -3,7 +3,6 @@ import random
 import uuid
 from aiohttp import web
 from server import PromptServer
-# v5.2
 
 NODE_ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
@@ -137,24 +136,24 @@ class PromptLineSelectorNode:
             prev_exec = PromptLineSelectorNode._last_executed.get(node_id, None)
             prev_user_val = PromptLineSelectorNode._last_user_index.get(node_id, None)
 
-            # Detect manual edit from user
-            if prev_user_val is not None and index != prev_user_val and index != prev_exec:
-                base_idx = index
-            elif prev_exec is not None:
-                if mode == "increment":
-                    base_idx = prev_exec + 1 if prev_exec < end else start
-                else:
-                    base_idx = prev_exec - 1 if prev_exec > start else end
+            # FIRST RUN / SAVED WORKFLOW FIX:
+            # If backend state is empty for this node, strictly respect the deserialized index incoming from UI
+            if prev_exec is None:
+                selected_index = max(start, min(index if index is not None else start, end))
+            # Detect explicit manual edit from user
+            elif prev_user_val is not None and index != prev_user_val and index != prev_exec:
+                selected_index = index
             else:
-                base_idx = index
+                if mode == "increment":
+                    selected_index = prev_exec + 1 if prev_exec < end else start
+                else:
+                    selected_index = prev_exec - 1 if prev_exec > start else end
 
-            if base_idx < start or base_idx > end:
-                base_idx = start if mode == "increment" else end
-
-            selected_index = base_idx
+            if selected_index < start or selected_index > end:
+                selected_index = start if mode == "increment" else end
 
         PromptLineSelectorNode._last_executed[node_id] = selected_index
-        PromptLineSelectorNode._last_user_index[node_id] = index
+        PromptLineSelectorNode._last_user_index[node_id] = selected_index
 
         original_line_idx, selected_line = valid_entries[selected_index]
 
@@ -165,7 +164,7 @@ class PromptLineSelectorNode:
                 last_comment = stripped.lstrip("#").strip()
                 break
 
-        # Broadcast executed index back to JS frontend UI for real-time widget updates
+        # Send back to frontend to update UI widget accurately
         PromptServer.instance.send_sync(
             "agi_prompt_selector_executed",
             {"node": node_id, "index": selected_index}
