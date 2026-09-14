@@ -3,15 +3,13 @@ import random
 import uuid
 from aiohttp import web
 from server import PromptServer
-
+# v5.4
 NODE_ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
-
 
 def get_prompts_dir():
     prompts_dir = os.path.join(NODE_ROOT_DIR, "prompts")
     os.makedirs(prompts_dir, exist_ok=True)
     return prompts_dir
-
 
 @PromptServer.instance.routes.get("/agi/get_prompt_file")
 async def get_prompt_file(request):
@@ -29,22 +27,22 @@ async def get_prompt_file(request):
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-
+            
             filtered_lines = [
-                line.strip() for line in content.splitlines()
+                line.strip() for line in content.splitlines() 
                 if line.strip() and not line.strip().startswith("#")
             ]
             return web.json_response({"text": content, "total_lines": len(filtered_lines)})
         except Exception as e:
             return web.json_response({"text": f"Error reading file: {str(e)}", "total_lines": 0}, status=500)
-
+    
     return web.json_response({"text": f"File not found: {filename}", "total_lines": 0}, status=404)
 
 
 class PromptLineSelectorNode:
     DEBUG_MODE = True
     _last_executed = {}
-    _last_user_index = {}
+    _registered_user_indices = {}
 
     @classmethod
     def IS_CHANGED(s, source, mode, node_id, filename="none", index=0, start_index=0, end_index=0, text=""):
@@ -55,7 +53,7 @@ class PromptLineSelectorNode:
     @classmethod
     def INPUT_TYPES(s):
         prompts_dir = get_prompts_dir()
-
+        
         files = []
         if os.path.exists(prompts_dir):
             for root, _, filenames in os.walk(prompts_dir):
@@ -64,7 +62,7 @@ class PromptLineSelectorNode:
                         full_path = os.path.join(root, f)
                         rel_path = os.path.relpath(full_path, prompts_dir)
                         files.append(rel_path)
-
+        
         files = sorted(files) if files else ["none"]
 
         return {
@@ -91,11 +89,11 @@ class PromptLineSelectorNode:
 
     def process_text(self, source, mode, node_id, filename="none", index=0, start_index=0, end_index=0, text=""):
         full_text = text if text else ""
-
+        
         if source == "file" and filename and filename != "none":
             prompts_dir = get_prompts_dir()
             file_path = os.path.abspath(os.path.join(prompts_dir, filename))
-
+            
             if file_path.startswith(prompts_dir) and os.path.exists(file_path):
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
@@ -106,8 +104,8 @@ class PromptLineSelectorNode:
         all_lines = full_text.splitlines()
 
         valid_entries = [
-            (i, line.strip())
-            for i, line in enumerate(all_lines)
+            (i, line.strip()) 
+            for i, line in enumerate(all_lines) 
             if line.strip() and not line.strip().startswith("#")
         ]
 
@@ -120,7 +118,7 @@ class PromptLineSelectorNode:
         max_idx = total_valid - 1
 
         start = max(0, min(start_index if start_index is not None else 0, max_idx))
-
+        
         if mode == "fixed":
             end = max_idx
         else:
@@ -134,15 +132,18 @@ class PromptLineSelectorNode:
             selected_index = max(0, min(index if index is not None else 0, max_idx))
         elif mode in ["increment", "decrement"]:
             prev_exec = PromptLineSelectorNode._last_executed.get(node_id, None)
-            prev_user_val = PromptLineSelectorNode._last_user_index.get(node_id, None)
+            base_user_index = PromptLineSelectorNode._registered_user_indices.get(node_id, None)
 
-            # FIRST RUN / SAVED WORKFLOW FIX:
-            # If backend state is empty for this node, strictly respect the deserialized index incoming from UI
+            # Detect if user manually changed the widget on UI to a brand-new value
+            if base_user_index is not None and index != base_user_index:
+                # User performed an explicit manual change on the frontend UI
+                prev_exec = index
+                PromptLineSelectorNode._registered_user_indices[node_id] = index
+
             if prev_exec is None:
+                # First run baseline
                 selected_index = max(start, min(index if index is not None else start, end))
-            # Detect explicit manual edit from user
-            elif prev_user_val is not None and index != prev_user_val and index != prev_exec:
-                selected_index = index
+                PromptLineSelectorNode._registered_user_indices[node_id] = index
             else:
                 if mode == "increment":
                     selected_index = prev_exec + 1 if prev_exec < end else start
@@ -153,7 +154,6 @@ class PromptLineSelectorNode:
                 selected_index = start if mode == "increment" else end
 
         PromptLineSelectorNode._last_executed[node_id] = selected_index
-        PromptLineSelectorNode._last_user_index[node_id] = selected_index
 
         original_line_idx, selected_line = valid_entries[selected_index]
 
@@ -164,7 +164,7 @@ class PromptLineSelectorNode:
                 last_comment = stripped.lstrip("#").strip()
                 break
 
-        # Send back to frontend to update UI widget accurately
+        # Notify UI to display current index
         PromptServer.instance.send_sync(
             "agi_prompt_selector_executed",
             {"node": node_id, "index": selected_index}
