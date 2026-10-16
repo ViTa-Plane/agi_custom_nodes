@@ -25,6 +25,38 @@
 <h2 id="node-categories">Node Categories</h2>
 
 <details open>
+  <summary><b>CLIP Conditioning</b> ( <code>agi/conditioning</code>)</summary>
+  <p>CLIPText Encode and Conditioning Tools.</p>
+  <ul>
+    <li><b>BREAK Strength Processor</b> (<code>break_strength_processor.py</code>) – A custom ComfyUI node designed to provide granular, block-by-block control over CLIP conditioning using the native BREAK keyword.
+  <br><br>
+        <p>
+        It splits input prompts across BREAK statements,provides real-time token tracking per block,
+        enables custom strength adjustments and toggles for individual segments, and features a non-destructive Hold & Edit mode that lets
+        you fine-tune prompts directly on the frontend without disconnecting upstream nodes
+        </p>
+    <div>
+
+Key Features:
+
+Granular Block Control: Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
+
+Smart Hold Mode (🔒 Held): Edit prompts or insert custom BREAK keywords directly in the frontend container. Enabling Hold locks your edits into execution memory via a dedicated payload without requiring you to disconnect upstream text links.
+
+Exact CLIP Token Synchronization: Displays live per-block and total CLIP token counts synchronized directly from ComfyUI's backend tokenizer execution, with visual warnings for blocks exceeding the standard 75-token threshold.
+
+Cursor-Aware Insertion: Double-click anywhere in the frontend preview text box to instantly insert a BREAK keyword at the cursor position and activate Hold mode automatically.
+
+Resilient Responsive Layout: Built with custom DOM bounds handling to eliminate canvas reflow glitches, layout collapsing, or desync issues during node dragging and resizing across browser engines (Chrome, Brave, Firefox).
+
+Backend: Uses native.CLIPTextEncode, native.ConditioningMultiply, and native.ConditioningConcat to process each block individually before merging them into a unified conditioning pipeline.
+
+Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time UI interface with clean state serialization across workflow saving/loading.
+    </li>
+ </ul>
+</details>
+
+<details open>
   <summary><b><code>agi/string</code> — String Utilities</b></summary>
   <p>Nodes for manipulating and formatting strings.</p>
   <ul>
