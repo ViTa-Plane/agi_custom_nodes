@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Elysia / Cyberpunk",
+    "category": "Character",
+    "character": "elysia",
+    "thumbnail": "elysia_cyber.png",
+    "prompt": "1girl, elysia, futuristic outfit, {mod}, neon city lights, {concept}, masterpiece, best quality",
+    "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality",
+    "version": {
+      "default": "1girl, elysia, futuristic outfit, {mod}, neon city lights, {concept}, masterpiece",
+      "v1_anime": "1girl, elysia, anime style, cybernetic eye, {mod}, cyberpunk street, {concept}",
+      "v2_cinematic": "1girl, elysia, photorealistic, cinematic lighting, neon rain, {mod}, {concept}"
+    },
+    "clothes": {
+      "leather_jacket": "black glowing leather jacket, high collar, zip-up",
+      "tactical_suit": "sleek tactical bodysuit, glowing neon circuitry pattern",
+      "casual_hoodie": "oversized techwear hoodie, fingerless gloves"
+    },
+    "concept": {
+      "action_pose": "dynamic action pose, mid-air combat jump, holding energy katana",
+      "portrait": "close-up portrait, looking at viewer, neon reflections in eyes",
+      "hologram": "interacting with a interactive holographic interface screen"
+    },
+    "suppress": "blurry, dark lighting, flat color",
+    "comment": "Default hero character for cyberpunk scenes. Works best with DPM++ 2M Karras.",
+    "seed": 834494001266102,
+    "params": {
+      "steps": 28,
+      "cfg": 7.0,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras"
+    }
+  }
+]
