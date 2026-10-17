@@ -1,4 +1,4 @@
-# Version: v2.3.0
+# Version: v2.3.1
 import os
 import json
 import re
@@ -434,5 +434,5 @@ NODE_CLASS_MAPPINGS = {
     "CharacterSelectorV2": CharacterSelectorV2
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "CharacterSelectorV2": "Character Selector v2"
+    "CharacterSelectorV2": "Easy Character Selector"
 }
