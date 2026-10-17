@@ -1,4 +1,11 @@
-// Version: v2.3.0
+/**
+ * ===============================================================================
+ * Extension: Easy Character Selector
+ * File: easy_character_selector.js
+ * Version: 2.3.1
+ * Description: Frontend canvas UI extension for 'Easy Character Selector' node.
+ * ===============================================================================
+ */
 import { app } from "/scripts/app.js";
 
 app.registerExtension({
