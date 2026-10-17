@@ -1,11 +1,8 @@
 """
 ===============================================================================
 Module: Easy Styles Selector
-File: styles_selector.py
-Version: 3.2.1
-Description: Python backend for ComfyUI CustomStylesSelector node.
-             Ensures {prompt} positioning is strictly maintained when
-             remove_dependencies is enabled.
+File: easy_styles_selector.py
+Version: 3.2.2
 ===============================================================================
 """
 
