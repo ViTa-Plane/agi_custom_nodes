@@ -1,4 +1,11 @@
-# Version: v2.3.1
+"""
+===============================================================================
+Module: Easy Character Selector
+File: easy_character_selector.py
+Version: 2.3.1
+===============================================================================
+"""
+
 import os
 import json
 import re
