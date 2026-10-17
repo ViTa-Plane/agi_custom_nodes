@@ -1,9 +1,9 @@
 <div align="center">
 
-<h1>AGI Custom Nodes for ComfyUI</h1>
+<h1>AGI's Custom Nodes for ComfyUI</h1>
 
 <p>
-  A collection of custom ComfyUI nodes used in my personal workflows. Tested on ComfyUI 0.22.0 with ComfyUI_frontend v1.43.18.
+  A collection of custom ComfyUI nodes used in my personal workflows. Tested on ComfyUI 0.34.0 with ComfyUI_frontend v1.49.6.
 </p>
 
 <p>
