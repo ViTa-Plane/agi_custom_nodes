@@ -7,7 +7,7 @@ class GetWidgetValue:
                 "target_node": ("STRING", {"default": "none"}),
                 "widget_name": ("STRING", {"default": "none"}),
             },
-            # We use the hidden prompt to 'peek' at the rest of the graph[cite: 1]
+            # We use the hidden prompt to 'peek' at the rest of the graph
             "hidden": {"prompt": "PROMPT"},
         }
 
@@ -52,7 +52,7 @@ class GetWidgetValue:
 
     @classmethod
     def IS_CHANGED(s, **kwargs):
-        # Force the node to refresh every time you hit 'Queue Prompt'[cite: 1]
+        # Force the node to refresh every time you hit 'Queue Prompt'
         return float("NaN")
 
 
