@@ -1,6 +1,6 @@
 """
 ===============================================================================
-Module: Easy Styles Selector
+Module: Easy Styles Selector (minimal)
 File: easy_styles_selector.py
 Version: 3.2.2
 ===============================================================================
