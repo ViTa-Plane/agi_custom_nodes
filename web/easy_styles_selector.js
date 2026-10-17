@@ -3,7 +3,7 @@
  * Extension: Easy Styles Selector
  * File: easy_styles_selector.js
  * Version: 3.3.1
- * Description: Frontend canvas UI extension for CustomStylesSelector node.
+ * Description: Frontend canvas UI extension for 'Easy Styles Selector' node.
  * ===============================================================================
  */
 
