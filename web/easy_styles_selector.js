@@ -491,7 +491,7 @@ app.registerExtension({
 
                 // ctx.fillStyle = isJsonError ? "#ff5555" : (this.previewImageLoaded ? "#777788" : "#ffaa44");
                 // drawTruncatedText(`Thumbnail Target: easy_styles/thumbnails/${this.currentThumbnailFile}`, padding + 8, metadataTopY + 65, maxFooterWidth);
-                drawTruncatedText(`frontend version 3.3.0`, padding + 8, metadataTopY + 65, maxFooterWidth);
+                drawTruncatedText(`frontend version 3.3.1`, padding + 8, metadataTopY + 65, maxFooterWidth);
 
                 // --- TOOLTIP DRAWING LOGIC ---
                 if (this.isHoveringThumb && (this.activeThumbnailFile || this.expectedThumbnailFile)) {
