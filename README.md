@@ -28,30 +28,23 @@
   <summary><b>CLIP Conditioning</b> ( <code>agi/conditioning</code>)</summary>
   <p>CLIPText Encode and Conditioning Tools.</p>
   <ul>
-    <li><b>BREAK Strength Processor</b> (<code>break_strength_processor.py</code>) – A custom ComfyUI node designed to provide granular, block-by-block control over CLIP conditioning using the native BREAK keyword.
-  <br><br>
-        <p>
-        It splits input prompts across BREAK statements,provides real-time token tracking per block,
-        enables custom strength adjustments and toggles for individual segments, and features a non-destructive Hold & Edit mode that lets
-        you fine-tune prompts directly on the frontend without disconnecting upstream nodes
-        </p>
-    <div>
+    <li><b>BREAK Strength Processor</b> (<code>break_strength_processor.py</code>)
+      <p>
+      A custom ComfyUI node designed to provide granular, block-by-block control over CLIP conditioning using the native BREAK keyword.
+      It splits input prompts across BREAK statements,provides real-time token tracking per block,
+      enables custom strength adjustments and toggles for individual segments, and features a non-destructive Hold & Edit mode that lets
+      you fine-tune prompts directly on the frontend without disconnecting upstream nodes.
+      </p>
+<li>Key Features:</li>
 
-Key Features:
-
-Granular Block Control: Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
-
-Smart Hold Mode (🔒 Held): Edit prompts or insert custom BREAK keywords directly in the frontend container. Enabling Hold locks your edits into execution memory via a dedicated payload without requiring you to disconnect upstream text links.
-
-Exact CLIP Token Synchronization: Displays live per-block and total CLIP token counts synchronized directly from ComfyUI's backend tokenizer execution, with visual warnings for blocks exceeding the standard 75-token threshold.
-
-Cursor-Aware Insertion: Double-click anywhere in the frontend preview text box to instantly insert a BREAK keyword at the cursor position and activate Hold mode automatically.
-
-Resilient Responsive Layout: Built with custom DOM bounds handling to eliminate canvas reflow glitches, layout collapsing, or desync issues during node dragging and resizing across browser engines (Chrome, Brave, Firefox).
-
-Backend: Uses native.CLIPTextEncode, native.ConditioningMultiply, and native.ConditioningConcat to process each block individually before merging them into a unified conditioning pipeline.
-
-Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time UI interface with clean state serialization across workflow saving/loading.
+- Granular Block Control: Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
+- Hold Mode): Edit prompts or insert custom BREAK keywords directly in the frontend container. Enabling Hold locks your edits into execution memory via a dedicated payload without requiring you to disconnect upstream text links.
+- Exact CLIP Token Synchronization: Displays live per-block and total CLIP token counts synchronized directly from ComfyUI's backend tokenizer execution, with visual warnings for blocks exceeding the standard 75-token threshold.
+- Cursor-Aware Insertion: Double-click anywhere in the frontend preview text box to instantly insert a BREAK keyword at the cursor position and activate Hold mode automatically.
+- Resilient Responsive Layout: Built with custom DOM bounds handling to eliminate canvas reflow glitches, layout collapsing, or desync issues during node dragging and resizing across browser engines (Chrome, Brave, Firefox).
+<br>
+<p>Backend: Uses native.CLIPTextEncode, native.ConditioningMultiply, and native.ConditioningConcat to process each block individually before merging them into a unified conditioning pipeline.</p>
+<p>Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time UI interface with clean state serialization across workflow saving/loading.</p>
     </li>
  </ul>
 </details>
@@ -85,6 +78,8 @@ Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time
   <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
   <ul>
     <li><b>Prompt Line Selector</b> (<code>prompt_line_selector_node.py</code> / <code>prompt_line_selector_node.js</code>) – Advanced incrementor / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
+    <li><b>Easy Styles Selector (minimal)</b> (<code>easy_styles_selector.py</code> / <code>easy_styles_selector.js</code>) – Easy style application system with extensive preset templates and thumbnail support</li>
+    <li><b>Easy Character Selector</b> (<code>character_selector_v2.py</code> / <code>character_selector_v2.js</code>) – Advanced character packaging and selection interface with preset thumbnails</li>
   </ul>
 </details>
 <details open>
