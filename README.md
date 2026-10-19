@@ -25,7 +25,7 @@
 <h2 id="node-categories">Node Categories</h2>
 
 <details open>
-  <summary><b>CLIP Conditioning</b> ( <code>agi/conditioning</code>)</summary>
+  <summary><b>CLIP Conditioning</b> <code>agi/conditioning</code></summary>
   <p>CLIPText Encode and Conditioning Tools.</p>
   <ul>
     <li><b>BREAK Strength Processor</b> (<code>break_strength_processor.py</code>)
@@ -44,12 +44,11 @@
 <br>
 <p>Backend: Uses native.CLIPTextEncode, native.ConditioningMultiply, and native.ConditioningConcat to process each block individually before merging them into a unified conditioning pipeline.</p>
 <p>Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time UI interface with clean state serialization across workflow saving/loading.</p>
-    </li>
  </ul>
 </details>
 
 <details open>
-  <summary><b><code>agi/string</code> — String Utilities</b></summary>
+  <summary><b>String Utilities</b> <code>agi/string</code></summary>
   <p>Nodes for manipulating and formatting strings.</p>
   <ul>
     <li><b>String Composer (Pre/App)</b> (<code>StringComposer.py</code>) – String templating and composition with prepend, append, and separator options.</li>
@@ -62,13 +61,13 @@
 </details>
 
 <details open>
-  <summary><b><code>agi/text</code> — Text </b></summary>
+  <summary><b>Text </b><code>agi/text</code></summary>
   <p>Nodes for manipulating, formatting text and strings.</p>
   <ul>
-      <li><b>Text Formatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:
-    <li>1. Replace spaces with underscores</li>
-    <li>2. Convert text to lowercase.</li>
-  </li>
+  <li><b>Text Formatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:</li>
+    
+  - Replace spaces with underscores
+  - Convert text to lowercase.
   </ul>
 </details>
 
