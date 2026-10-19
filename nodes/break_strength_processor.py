@@ -1,4 +1,4 @@
-# Version: v1.5.4
+# Version: v1.5.5
 
 import re
 from comfy.sd import CLIP
@@ -84,22 +84,24 @@ class BreakStrengthProcessor:
                 paired.append((cleaned, effective_s))
 
                 tokenizer_results = clip.tokenize(cleaned)
-                block_tokens = 0
-                for key, tokens_map in [
-                    (key, tokens[0]) for key, tokens in tokenizer_results.items() if key in special_tokens_map
-                ]:
-                    prompt_tokens = [
-                        t for t in tokens_map if t[0] not in special_tokens_map[key]
-                    ]
-                    block_tokens += len(prompt_tokens)
+                encoder_counts = []
 
-                if block_tokens == 0:
-                    for tokens_map in tokenizer_results.values():
-                        if isinstance(tokens_map, list) and len(tokens_map) > 0 and isinstance(tokens_map[0], list):
-                            block_tokens += len(tokens_map[0])
-                        else:
-                            block_tokens += len(tokens_map)
+                for key, tokens_map in tokenizer_results.items():
+                    t_list = tokens_map[0] if isinstance(tokens_map, list) and len(tokens_map) > 0 and isinstance(
+                        tokens_map[0], list) else tokens_map
 
+                    if key in special_tokens_map:
+                        special_set = special_tokens_map[key]
+                        prompt_tokens = [
+                            t for t in t_list if
+                            (t[0] not in special_set if isinstance(t, (list, tuple)) else t not in special_set)
+                        ]
+                        encoder_counts.append(len(prompt_tokens))
+                    else:
+                        encoder_counts.append(len(t_list))
+
+                # Use max across encoders (e.g., clip_l vs clip_g in SDXL) to prevent double counting
+                block_tokens = max(encoder_counts) if encoder_counts else 0
                 block_token_counts.append(block_tokens)
 
         if not paired:
@@ -163,7 +165,7 @@ class BreakStrengthProcessor:
                 "total_tokens": [total_tokens],
                 "block_tokens": [block_token_counts]
             },
-            "result": (out[0],output_text)
+            "result": (out[0], output_text)
         }
 
 
