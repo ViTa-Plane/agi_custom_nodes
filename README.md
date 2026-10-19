@@ -37,11 +37,10 @@
       </p>
 <li>Key Features:</li>
 
-- Granular Block Control: Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
-- Hold Mode): Edit prompts or insert custom BREAK keywords directly in the frontend container. Enabling Hold locks your edits into execution memory via a dedicated payload without requiring you to disconnect upstream text links.
-- Exact CLIP Token Synchronization: Displays live per-block and total CLIP token counts synchronized directly from ComfyUI's backend tokenizer execution, with visual warnings for blocks exceeding the standard 75-token threshold.
-- Cursor-Aware Insertion: Double-click anywhere in the frontend preview text box to instantly insert a BREAK keyword at the cursor position and activate Hold mode automatically.
-- Resilient Responsive Layout: Built with custom DOM bounds handling to eliminate canvas reflow glitches, layout collapsing, or desync issues during node dragging and resizing across browser engines (Chrome, Brave, Firefox).
+-  Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
+-  Displays live per-block and total CLIP token counts, with visual warnings for blocks exceeding the standard 75-token threshold.
+-  Double-click anywhere in the frontend preview text box to instantly insert/delete a BREAK keyword at the cursor position.
+-  Dynamic re-order of the conditioning blocks.
 <br>
 <p>Backend: Uses native.CLIPTextEncode, native.ConditioningMultiply, and native.ConditioningConcat to process each block individually before merging them into a unified conditioning pipeline.</p>
 <p>Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time UI interface with clean state serialization across workflow saving/loading.</p>
