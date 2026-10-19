@@ -48,6 +48,24 @@
 </details>
 
 <details open>
+  <summary><b> Prompt Utilities</b> <code>agi/Prompt Utility</code></summary>
+  <p>Advanced nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
+  <ul>
+    <li><b>Easy Character Selector</b> (<code>easy_character_selector.py</code> / <code>easy_character_selector.js</code>) – Advanced character packaging and selection interface with presets and thumbnails</li>
+    <li><b>Easy Styles Selector (minimal)</b> (<code>easy_styles_selector.py</code> / <code>easy_styles_selector.js</code>) – Easy style application system with extensive preset templates and thumbnail support</li>
+    <li><b>Prompt Line Selector</b> (<code>prompt_line_selector_node.py</code> / <code>prompt_line_selector_node.js</code>) – Advanced incrementor / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
+  </ul>
+</details>
+<details open>
+  <summary><b><code>agi/JSON</code> — JSON Utilities</b></summary>
+  <p>JSON Utilities Nodes .</p>
+  <ul>
+    <li><b>JSON Name Set Selector</b> (<code>json_utils.py</code> / <code>names_set.json</code>) – ComfyUI node that reads names_set.json from its directory and outputs
+    the selected element as a string.</li>
+  </ul>
+</details>
+
+<details open>
   <summary><b>String Utilities</b> <code>agi/string</code></summary>
   <p>Nodes for manipulating and formatting strings.</p>
   <ul>
@@ -68,24 +86,6 @@
     
   - Replace spaces with underscores
   - Convert text to lowercase.
-  </ul>
-</details>
-
-<details open>
-  <summary><b><code>agi/Prompt Utility</code> — Prompt Utilities</b></summary>
-  <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
-  <ul>
-    <li><b>Prompt Line Selector</b> (<code>prompt_line_selector_node.py</code> / <code>prompt_line_selector_node.js</code>) – Advanced incrementor / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
-    <li><b>Easy Styles Selector (minimal)</b> (<code>easy_styles_selector.py</code> / <code>easy_styles_selector.js</code>) – Easy style application system with extensive preset templates and thumbnail support</li>
-    <li><b>Easy Character Selector</b> (<code>character_selector_v2.py</code> / <code>character_selector_v2.js</code>) – Advanced character packaging and selection interface with preset thumbnails</li>
-  </ul>
-</details>
-<details open>
-  <summary><b><code>agi/JSON</code> — JSON Utilities</b></summary>
-  <p>JSON Utilities Nodes .</p>
-  <ul>
-    <li><b>JSON Name Set Selector</b> (<code>json_utils.py</code> / <code>names_set.json</code>) – ComfyUI node that reads names_set.json from its directory and outputs
-    the selected element as a string.</li>
   </ul>
 </details>
 
