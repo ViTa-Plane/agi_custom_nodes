@@ -1,0 +1,38 @@
+{
+  "name": "Anime Heroine / Sakura",
+  "category": "character",
+  "character": "sakura",
+  "thumbnail": "sakura_thumb.png",
+  "comment": "Main protagonist style trained on NijiXL base model. Use high CFG.",
+  "seed": 8675309,
+  "params": {
+    "steps": 25,
+    "cfg": 7.0,
+    "sampler": "euler_ancestral"
+  },
+  "prompt": "{prompt}, 1girl, solo, cute smile, detailed eyes, masterpiece, {age}, {clothes}, {mod}, {lora}",
+  "version": {
+    "default": "{prompt}, 1girl, solo, cute smile, detailed eyes, masterpiece, {age}, {clothes}, {mod}, {lora}",
+    "Battle Mode": "{prompt}, 1girl, solo, fierce expression, dynamic pose, glowing aura, {age}, {clothes}, {mod}, {lora}"
+  },
+  "age": {
+    "teen (16yo)": "young, teenage girl, slender build",
+    "adult (22yo)": "mature female, elegant posture"
+  },
+  "clothes": {
+    "school uniform": "school uniform, sailor collar, pleated skirt, loafers",
+    "casual hoodie": "oversized pastel hoodie, black leggings, sneakers",
+    "battle armor": "light fantasy armor, pauldrons, gauntlets, thigh-high boots"
+  },
+  "mod": {
+    "cherry blossoms": "falling cherry blossoms, wind blowing, pink petals",
+    "cyberpunk alley": "neon lights, cyberpunk street, wet asphalt reflections",
+    "magic circle": "glowing magical runes, floating sparks, arcane energy"
+  },
+  "lora": {
+    "default": "<lora:sakura_model_v1_epoch{epoch}:0.8>, <lora:clothing_pack_v2:0.5>",
+    "Battle Mode": "<lora:sakura_model_v1_epoch{epoch}:1.0>, <lora:epic_battle_fx:0.6>"
+  },
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+  "suppress": "nsfw, gore"
+}
