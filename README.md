@@ -25,7 +25,7 @@
 <h2 id="node-categories">Node Categories</h2>
 
 <details open>
-  <summary><b>CLIP Conditioning</b> ( <code>agi/conditioning</code>)</summary>
+  <summary><b>CLIP Conditioning</b> <code>agi/conditioning</code></summary>
   <p>CLIPText Encode and Conditioning Tools.</p>
   <ul>
     <li><b>BREAK Strength Processor</b> (<code>break_strength_processor.py</code>)
@@ -37,20 +37,36 @@
       </p>
 <li>Key Features:</li>
 
-- Granular Block Control: Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
-- Hold Mode): Edit prompts or insert custom BREAK keywords directly in the frontend container. Enabling Hold locks your edits into execution memory via a dedicated payload without requiring you to disconnect upstream text links.
-- Exact CLIP Token Synchronization: Displays live per-block and total CLIP token counts synchronized directly from ComfyUI's backend tokenizer execution, with visual warnings for blocks exceeding the standard 75-token threshold.
-- Cursor-Aware Insertion: Double-click anywhere in the frontend preview text box to instantly insert a BREAK keyword at the cursor position and activate Hold mode automatically.
-- Resilient Responsive Layout: Built with custom DOM bounds handling to eliminate canvas reflow glitches, layout collapsing, or desync issues during node dragging and resizing across browser engines (Chrome, Brave, Firefox).
+-  Automatically parses prompts separated by BREAK into distinct conditioning blocks with independent strength sliders and enable/disable toggles.
+-  Displays live per-block and total CLIP token counts, with visual warnings for blocks exceeding the standard 75-token threshold.
+-  Double-click anywhere in the frontend preview text box to instantly insert/delete a BREAK keyword at the cursor position.
+-  Dynamic re-order of the conditioning blocks.
 <br>
 <p>Backend: Uses native.CLIPTextEncode, native.ConditioningMultiply, and native.ConditioningConcat to process each block individually before merging them into a unified conditioning pipeline.</p>
 <p>Frontend: Leverages custom LiteGraph DOM widgets to deliver a dynamic, real-time UI interface with clean state serialization across workflow saving/loading.</p>
-    </li>
  </ul>
 </details>
 
 <details open>
-  <summary><b><code>agi/string</code> — String Utilities</b></summary>
+  <summary><b> Prompt Utilities</b> <code>agi/Prompt Utility</code></summary>
+  <p>Advanced nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
+  <ul>
+    <li><b>Easy Character Selector</b> (<code>easy_character_selector.py</code> / <code>easy_character_selector.js</code>) – Advanced character packaging and selection interface with presets and thumbnails</li>
+    <li><b>Easy Styles Selector (minimal)</b> (<code>easy_styles_selector.py</code> / <code>easy_styles_selector.js</code>) – Easy style application system with extensive preset templates and thumbnail support</li>
+    <li><b>Prompt Line Selector</b> (<code>prompt_line_selector_node.py</code> / <code>prompt_line_selector_node.js</code>) – Advanced incrementor / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
+  </ul>
+</details>
+<details open>
+  <summary><b><code>agi/JSON</code> — JSON Utilities</b></summary>
+  <p>JSON Utilities Nodes .</p>
+  <ul>
+    <li><b>JSON Name Set Selector</b> (<code>json_utils.py</code> / <code>names_set.json</code>) – ComfyUI node that reads names_set.json from its directory and outputs
+    the selected element as a string.</li>
+  </ul>
+</details>
+
+<details open>
+  <summary><b>String Utilities</b> <code>agi/string</code></summary>
   <p>Nodes for manipulating and formatting strings.</p>
   <ul>
     <li><b>String Composer (Pre/App)</b> (<code>StringComposer.py</code>) – String templating and composition with prepend, append, and separator options.</li>
@@ -63,31 +79,13 @@
 </details>
 
 <details open>
-  <summary><b><code>agi/text</code> — Text </b></summary>
+  <summary><b>Text </b><code>agi/text</code></summary>
   <p>Nodes for manipulating, formatting text and strings.</p>
   <ul>
-      <li><b>Text Formatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:
-    <li>1. Replace spaces with underscores</li>
-    <li>2. Convert text to lowercase.</li>
-  </li>
-  </ul>
-</details>
-
-<details open>
-  <summary><b><code>agi/Prompt Utility</code> — Prompt Utilities</b></summary>
-  <p>Nodes for manipulating, formatting, and dynamically parsing text prompts and strings.</p>
-  <ul>
-    <li><b>Prompt Line Selector</b> (<code>prompt_line_selector_node.py</code> / <code>prompt_line_selector_node.js</code>) – Advanced incrementor / random line reader used for automated prompt workflows. Reads from a <code>.txt</code> file or a multiline string.</li>
-    <li><b>Easy Styles Selector (minimal)</b> (<code>easy_styles_selector.py</code> / <code>easy_styles_selector.js</code>) – Easy style application system with extensive preset templates and thumbnail support</li>
-    <li><b>Easy Character Selector</b> (<code>character_selector_v2.py</code> / <code>character_selector_v2.js</code>) – Advanced character packaging and selection interface with preset thumbnails</li>
-  </ul>
-</details>
-<details open>
-  <summary><b><code>agi/JSON</code> — JSON Utilities</b></summary>
-  <p>JSON Utilities Nodes .</p>
-  <ul>
-    <li><b>JSON Name Set Selector</b> (<code>json_utils.py</code> / <code>names_set.json</code>) – ComfyUI node that reads names_set.json from its directory and outputs
-    the selected element as a string.</li>
+  <li><b>Text Formatting</b> (<code>TextTransformNode.py</code>) – Utility node that modifies a input string with toggles to:</li>
+    
+  - Replace spaces with underscores
+  - Convert text to lowercase.
   </ul>
 </details>
 
