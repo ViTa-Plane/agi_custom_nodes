@@ -2,10 +2,9 @@
 ===============================================================================
 Module: Easy Character Selector
 File: easy_character_selector.py
-Version: 2.3.1
+Version: 2.7.2
 ===============================================================================
 """
-
 import os
 import json
 import re
@@ -79,6 +78,24 @@ def load_flat_container_styles():
                         elif isinstance(raw_mods, str) and raw_mods.strip():
                             mod_dict = {"default": raw_mods.strip()}
 
+                        lora_dict = {}
+                        raw_loras = item.get("lora")
+                        if isinstance(raw_loras, dict):
+                            lora_dict = {str(k).strip(): str(v).strip() for k, v in raw_loras.items()}
+                        elif isinstance(raw_loras, list):
+                            lora_dict = {str(elem).strip(): str(elem).strip() for elem in raw_loras}
+                        elif isinstance(raw_loras, str) and raw_loras.strip():
+                            lora_dict = {"default": raw_loras.strip()}
+
+                        age_dict = {}
+                        raw_ages = item.get("age")
+                        if isinstance(raw_ages, dict):
+                            age_dict = {str(k).strip(): str(v).strip() for k, v in raw_ages.items()}
+                        elif isinstance(raw_ages, list):
+                            age_dict = {str(elem).strip(): str(elem).strip() for elem in raw_ages}
+                        elif isinstance(raw_ages, str) and raw_ages.strip():
+                            age_dict = {"default": raw_ages.strip()}
+
                         main_prompt = item.get("prompt", "{prompt}")
 
                         version_dict = {}
@@ -104,11 +121,13 @@ def load_flat_container_styles():
                             "character": character,
                             "prompt": main_prompt,
                             "version": version_dict,
+                            "age": age_dict,
                             "concept": concept_dict,
                             "negative_prompt": item.get("negative_prompt", ""),
                             "suppress": item.get("suppress", ""),
                             "clothes": clothes_dict,
                             "mod": mod_dict,
+                            "lora": lora_dict,
                             "thumbnail": item.get("thumbnail"),
                             "comment": item.get("comment", ""),
                             "seed": item.get("seed", ""),
@@ -117,7 +136,7 @@ def load_flat_container_styles():
                         })
                 except Exception as e:
                     error_msg = str(e)
-                    print(f"[Character Selector v2] Critical Syntax Error parsing container {file}: {error_msg}")
+                    print(f"[Easy Character Selector] Critical Syntax Error parsing container {file}: {error_msg}")
 
                     styles_inventory.append({
                         "name": f"⚠️ ERROR IN: {file}",
@@ -125,11 +144,13 @@ def load_flat_container_styles():
                         "character": "misc",
                         "prompt": f"JSON syntax error detected inside file: {file}",
                         "version": {"default": f"JSON syntax error detected inside file: {file}"},
+                        "age": {},
                         "concept": {},
                         "negative_prompt": "Fix file syntax to clear this alert flag.",
                         "suppress": "",
                         "clothes": {},
                         "mod": {},
+                        "lora": {},
                         "thumbnail": None,
                         "comment": f"PARSER REJECTION: {error_msg}",
                         "seed": "ERROR",
@@ -137,7 +158,7 @@ def load_flat_container_styles():
                         "file_name": file
                     })
     except Exception as e:
-        print(f"[Character Selector v2] Directory access error: {e}")
+        print(f"[Easy Character Selector] Directory access error: {e}")
 
     styles_inventory.sort(key=lambda x: x["name"].lower())
     return styles_inventory
@@ -152,6 +173,7 @@ class CharacterSelectorV2:
         all_clothes_keys = set(["none"])
         all_mod_keys = set(["none"])
         all_version_keys = set(["default"])
+        all_age_keys = set(["none"])
         all_concept_keys = set(["none"])
 
         for item in all_styles:
@@ -170,6 +192,11 @@ class CharacterSelectorV2:
                 for k in version_map.keys():
                     all_version_keys.add(k)
 
+            age_map = item.get("age", {})
+            if isinstance(age_map, dict):
+                for k in age_map.keys():
+                    all_age_keys.add(k)
+
             concept_map = item.get("concept", {})
             if isinstance(concept_map, dict):
                 for k in concept_map.keys():
@@ -178,6 +205,7 @@ class CharacterSelectorV2:
         clothing_list = sorted(list(all_clothes_keys))
         mod_list = ["none"] + sorted([m for m in all_mod_keys if m != "none"])
         version_list = ["default"] + sorted([v for v in all_version_keys if v != "default"])
+        age_list = ["none"] + sorted([a for a in all_age_keys if a != "none"])
         concept_list = ["none"] + sorted([c for c in all_concept_keys if c != "none"])
 
         return {
@@ -188,23 +216,27 @@ class CharacterSelectorV2:
                 }),
                 "epoch": ("INT", {
                     "default": 1, "min": 1, "max": 999, "step": 1, "display": "number",
-                    "tooltip": "Replaces any {epoch} placeholders in positive prompt templates with this training epoch number (padded to 2 digits)."
+                    "tooltip": "Replaces any {epoch} placeholders in positive prompt templates or LoRA strings with this training epoch number (padded to 2 digits)."
                 }),
                 "version": (version_list, {
                     "default": "default",
                     "tooltip": "Select a specific positive prompt version preset defined for this character."
                 }),
-                "clothing/mod": (clothing_list, {
+                "age": (age_list, {
                     "default": "none",
-                    "tooltip": "Select clothing preset. Replaces {clothes} in positive prompt templates or appends before mod/concept if no placeholder is present."
+                    "tooltip": "Select age preset defined for this character."
+                }),
+                "clothing": (clothing_list, {
+                    "default": "none",
+                    "tooltip": "Select clothing preset. Replaces {clothes} in positive prompt templates or appends if no placeholder is present."
                 }),
                 "mod": (mod_list, {
                     "default": "none",
-                    "tooltip": "Select modifier preset. Replaces {mod} in positive prompt templates or appends after clothes if no placeholder is present."
+                    "tooltip": "Select modifier preset. Replaces {mod} in positive prompt templates or appends if no placeholder is present."
                 }),
                 "concept": (concept_list, {
                     "default": "none",
-                    "tooltip": "Select concept template. Replaces {concept} in positive prompt templates or appends after clothes/mod if no placeholder is present."
+                    "tooltip": "Select concept template. Replaces {concept} in positive prompt templates or appends if no placeholder is present."
                 }),
                 "lora_strength": ("FLOAT", {
                     "default": 1.0, "min": 0.0, "max": 2.0, "step": 0.05, "display": "number",
@@ -252,7 +284,7 @@ class CharacterSelectorV2:
     def clean_output_string(self, text):
         if not text:
             return ""
-        text = text.replace("{prompt}", "").replace("{weight}", "").replace("{epoch}", "").replace("{concept}", "").replace("{clothes}", "").replace("{mod}", "")
+        text = text.replace("{prompt}", "").replace("{weight}", "").replace("{epoch}", "").replace("{age}", "").replace("{concept}", "").replace("{clothes}", "").replace("{mod}", "").replace("{lora}", "")
         text = re.sub(r'<lora:[:\s]*>', '', text)
         text = re.sub(r',(?:\s*,)+', ',', text)
         text = text.strip().strip(',')
@@ -306,8 +338,9 @@ class CharacterSelectorV2:
 
     def apply_style(self, select_character, **kwargs):
         version_selected = kwargs.get("version", "default")
+        age_selected = kwargs.get("age", "none")
         concept_selected = kwargs.get("concept", "none")
-        clothing_selected = kwargs.get("clothing/mod", kwargs.get("modifier (optional)", "none"))
+        clothing_selected = kwargs.get("clothing", kwargs.get("clothing/mod", kwargs.get("modifier (optional)", "none")))
         mod_selected = kwargs.get("mod", "none")
         lora_strength = kwargs.get("lora_strength", 1.0)
         keyword_strength = kwargs.get("keyword_strength", 1.0)
@@ -338,6 +371,12 @@ class CharacterSelectorV2:
             character_val = style_data.get("character", "misc")
             suppress_val = style_data.get("suppress", "")
 
+            age_text = ""
+            age_dict = style_data.get("age", {})
+            if isinstance(age_dict, dict) and age_selected != "none":
+                if age_selected in age_dict:
+                    age_text = age_dict.get(age_selected, "")
+
             concept_text = ""
             concept_dict = style_data.get("concept", {})
             if isinstance(concept_dict, dict) and concept_selected != "none":
@@ -353,12 +392,30 @@ class CharacterSelectorV2:
             if isinstance(mod_map, dict) and mod_selected != "none":
                 mod_text = mod_map.get(mod_selected, "")
 
+            lora_text = ""
+            lora_map = style_data.get("lora", {})
+            if isinstance(lora_map, dict):
+                if version_selected in lora_map:
+                    lora_text = lora_map.get(version_selected, "")
+                elif "default" in lora_map:
+                    lora_text = lora_map.get("default", "")
+                elif lora_map:
+                    lora_text = list(lora_map.values())[0]
+
             kw_val_str = f"{keyword_strength:.2f}".rstrip('0').rstrip('.') if keyword_strength % 1 != 0 else f"{int(keyword_strength)}"
             epoch_str = f"{int(epoch_val):02d}"
+
+            if lora_text and "{epoch}" in lora_text:
+                lora_text = lora_text.replace("{epoch}", epoch_str)
+
+            if age_text and "{epoch}" in age_text:
+                age_text = age_text.replace("{epoch}", epoch_str)
 
             has_concept_tag = "{concept}" in style_positive
             has_clothes_tag = "{clothes}" in style_positive
             has_mod_tag = "{mod}" in style_positive
+            has_lora_tag = "{lora}" in style_positive
+            has_age_tag = "{age}" in style_positive
 
             style_positive = style_positive.replace("{kw_str}", kw_val_str).replace("{epoch}", epoch_str)
             style_negative = style_negative.replace("{kw_str}", kw_val_str).replace("{epoch}", epoch_str)
@@ -372,20 +429,31 @@ class CharacterSelectorV2:
             if has_mod_tag:
                 style_positive = style_positive.replace("{mod}", mod_text)
 
+            if has_lora_tag:
+                style_positive = style_positive.replace("{lora}", lora_text)
+
+            if has_age_tag:
+                style_positive = style_positive.replace("{age}", age_text)
+
             has_prompt_tag = "{prompt}" in style_positive
             prompt_at_start = style_positive.strip().startswith("{prompt}")
 
             clean_style_positive = style_positive.replace("{prompt}", "").strip(" ,")
 
-            # Fallback insertion order: clothes -> mod -> concept
             fallback_additions = []
+            if age_text and not has_age_tag:
+                fallback_additions.append(age_text)
+
             if clothing_text and not has_clothes_tag:
-                clothing_text_proc = clothing_text.replace("{kw_str}", kw_val_str).replace("{epoch}", epoch_str).replace("{concept}", concept_text).replace("{mod}", mod_text)
+                clothing_text_proc = clothing_text.replace("{kw_str}", kw_val_str).replace("{epoch}", epoch_str).replace("{age}", age_text).replace("{concept}", concept_text).replace("{mod}", mod_text).replace("{lora}", lora_text)
                 fallback_additions.append(clothing_text_proc)
 
             if mod_text and not has_mod_tag:
-                mod_text_proc = mod_text.replace("{kw_str}", kw_val_str).replace("{epoch}", epoch_str).replace("{concept}", concept_text).replace("{clothes}", clothing_text)
+                mod_text_proc = mod_text.replace("{kw_str}", kw_val_str).replace("{epoch}", epoch_str).replace("{age}", age_text).replace("{concept}", concept_text).replace("{clothes}", clothing_text).replace("{lora}", lora_text)
                 fallback_additions.append(mod_text_proc)
+
+            if lora_text and not has_lora_tag:
+                fallback_additions.append(lora_text)
 
             if concept_text and not has_concept_tag:
                 fallback_additions.append(concept_text)
