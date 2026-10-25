@@ -2,7 +2,7 @@
  * ===============================================================================
  * Extension: Easy Character Selector
  * File: easy_character_selector.js
- * Version: 2.3.1
+ * Version: 2.7.2
  * Description: Frontend canvas UI extension for 'Easy Character Selector' node.
  * ===============================================================================
  */
@@ -84,13 +84,17 @@ app.registerExtension({
                     });
                 };
 
-                const updateComboValues = (widget, newValues, defaultValue) => {
+                const updateComboValues = (widget, newValues, preferredDefault = null) => {
                     if (!widget) return;
                     widget.options = widget.options || {};
                     widget.options.values = newValues;
 
+                    const defaultToUse = (preferredDefault && newValues.includes(preferredDefault))
+                        ? preferredDefault
+                        : (newValues[0] || "default");
+
                     if (!newValues.includes(widget.value)) {
-                        widget.value = newValues.includes(defaultValue) ? defaultValue : newValues[0];
+                        widget.value = defaultToUse;
                     }
                 };
 
@@ -108,7 +112,7 @@ app.registerExtension({
                             stylesArray = typeof rawVal === "string" ? JSON.parse(rawVal) : rawVal;
                         }
                     } catch(e) {
-                        console.error("[Character Selector v2 Sync Error]", e);
+                        console.error("[Easy Character Selector Sync Error]", e);
                     }
 
                     if (!Array.isArray(stylesArray)) stylesArray = [];
@@ -118,7 +122,8 @@ app.registerExtension({
                     const characterWidget = node.widgets?.find(w => w.name === "select_character");
                     const epochWidget = node.widgets?.find(w => w.name === "epoch");
                     const versionWidget = node.widgets?.find(w => w.name === "version");
-                    const clothesWidget = node.widgets?.find(w => w.name === "clothing/mod" || w.name === "modifier (optional)");
+                    const ageWidget = node.widgets?.find(w => w.name === "age");
+                    const clothesWidget = node.widgets?.find(w => w.name === "clothing" || w.name === "clothing/mod" || w.name === "modifier (optional)");
                     const modWidget = node.widgets?.find(w => w.name === "mod");
                     const conceptWidget = node.widgets?.find(w => w.name === "concept");
                     const wrapBreakWidget = node.widgets?.find(w => w.name === "wrap_break");
@@ -153,8 +158,19 @@ app.registerExtension({
 
                             updateComboValues(versionWidget, ["default"], "default");
                             updateComboValues(clothesWidget, ["none"], "none");
-                            updateComboValues(modWidget, ["none"], "none");
 
+                            if (modWidget) {
+                                updateComboValues(modWidget, ["none"], "none");
+                                modWidget.type = "converted-widget";
+                                modWidget.hidden = true;
+                                modWidget.computeSize = () => [0, -4];
+                            }
+                            if (ageWidget) {
+                                updateComboValues(ageWidget, ["none"], "none");
+                                ageWidget.type = "converted-widget";
+                                ageWidget.hidden = true;
+                                ageWidget.computeSize = () => [0, -4];
+                            }
                             if (conceptWidget) {
                                 updateComboValues(conceptWidget, ["none"], "none");
                                 conceptWidget.type = "converted-widget";
@@ -178,6 +194,52 @@ app.registerExtension({
                                 availableVersions = ["default", ...keys];
                             }
                             updateComboValues(versionWidget, availableVersions, "default");
+                        }
+
+                        const hasAgeProperty = (styleConfig.age && Object.keys(styleConfig.age).length > 0);
+
+                        if (ageWidget) {
+                            let availableAges = ["none"];
+                            if (styleConfig.age && typeof styleConfig.age === "object") {
+                                const keys = Object.keys(styleConfig.age);
+                                if (keys.length > 0) {
+                                    availableAges = Array.from(new Set(["none", ...keys]));
+                                }
+                            }
+                            updateComboValues(ageWidget, availableAges, "none");
+
+                            if (hasAgeProperty) {
+                                ageWidget.type = "combo";
+                                ageWidget.hidden = false;
+                                delete ageWidget.computeSize;
+                            } else {
+                                ageWidget.type = "converted-widget";
+                                ageWidget.hidden = true;
+                                ageWidget.computeSize = () => [0, -4];
+                            }
+                        }
+
+                        const hasModProperty = (styleConfig.mod && Object.keys(styleConfig.mod).length > 0);
+
+                        if (modWidget) {
+                            let availableMods = ["none"];
+                            if (styleConfig.mod && typeof styleConfig.mod === "object") {
+                                const keys = Object.keys(styleConfig.mod);
+                                if (keys.length > 0) {
+                                    availableMods = Array.from(new Set(["none", ...keys]));
+                                }
+                            }
+                            updateComboValues(modWidget, availableMods, "none");
+
+                            if (hasModProperty) {
+                                modWidget.type = "combo";
+                                modWidget.hidden = false;
+                                delete modWidget.computeSize;
+                            } else {
+                                modWidget.type = "converted-widget";
+                                modWidget.hidden = true;
+                                modWidget.computeSize = () => [0, -4];
+                            }
                         }
 
                         if (conceptWidget) {
@@ -218,21 +280,16 @@ app.registerExtension({
                             updateComboValues(clothesWidget, availableClothes, "none");
                         }
 
-                        if (modWidget) {
-                            let availableMods = ["none"];
-                            if (styleConfig.mod && typeof styleConfig.mod === "object") {
-                                const keys = Object.keys(styleConfig.mod);
-                                if (keys.length > 0) {
-                                    availableMods = Array.from(new Set(["none", ...keys]));
-                                }
-                            }
-                            updateComboValues(modWidget, availableMods, "none");
-                        }
-
                         const selectedVersionKey = versionWidget ? versionWidget.value : "default";
                         let targetPromptTemplate = styleConfig.prompt || "";
                         if (styleConfig.version && typeof styleConfig.version === "object") {
                             targetPromptTemplate = styleConfig.version[selectedVersionKey] || styleConfig.version["default"] || targetPromptTemplate;
+                        }
+
+                        const selectedAgeKey = ageWidget ? ageWidget.value : "none";
+                        let ageText = "";
+                        if (selectedAgeKey && selectedAgeKey !== "none" && styleConfig.age) {
+                            ageText = styleConfig.age[selectedAgeKey] || "";
                         }
 
                         const selectedConceptKey = conceptWidget ? conceptWidget.value : "none";
@@ -253,10 +310,24 @@ app.registerExtension({
                             modText = styleConfig.mod[selectedModKey] || "";
                         }
 
+                        let loraText = "";
+                        if (styleConfig.lora && typeof styleConfig.lora === "object") {
+                            if (styleConfig.lora[selectedVersionKey]) {
+                                loraText = styleConfig.lora[selectedVersionKey];
+                            } else if (styleConfig.lora["default"]) {
+                                loraText = styleConfig.lora["default"];
+                            } else {
+                                const loraVals = Object.values(styleConfig.lora);
+                                if (loraVals.length > 0) loraText = loraVals[0];
+                            }
+                        }
+
                         const hasEpochPlaceholder = (
                             (targetPromptTemplate && targetPromptTemplate.includes("{epoch}")) ||
                             (clothesText && clothesText.includes("{epoch}")) ||
-                            (modText && modText.includes("{epoch}"))
+                            (modText && modText.includes("{epoch}")) ||
+                            (loraText && loraText.includes("{epoch}")) ||
+                            (ageText && ageText.includes("{epoch}"))
                         );
 
                         if (epochWidget) {
@@ -273,6 +344,13 @@ app.registerExtension({
 
                         const rawEpoch = epochWidget ? (epochWidget.value || 1) : 1;
                         const activeEpochVal = String(Math.floor(rawEpoch)).padStart(2, '0');
+
+                        if (loraText && loraText.includes("{epoch}")) {
+                            loraText = loraText.replace(/{epoch}/g, activeEpochVal);
+                        }
+                        if (ageText && ageText.includes("{epoch}")) {
+                            ageText = ageText.replace(/{epoch}/g, activeEpochVal);
+                        }
 
                         const loraStrengthVal = loraStrengthWidget ? (parseFloat(loraStrengthWidget.value) || 1.0) : 1.0;
                         const kwStrengthVal = keywordStrengthWidget ? (parseFloat(keywordStrengthWidget.value) || 1.0) : 1.0;
@@ -297,14 +375,26 @@ app.registerExtension({
                                 cleaned = cleaned.replace(/{mod}/g, modText);
                             }
 
+                            const hasLoraPlaceholder = str.includes("{lora}");
+                            if (hasLoraPlaceholder && isPositive) {
+                                cleaned = cleaned.replace(/{lora}/g, loraText);
+                            }
+
+                            const hasAgePlaceholder = str.includes("{age}");
+                            if (hasAgePlaceholder && isPositive) {
+                                cleaned = cleaned.replace(/{age}/g, ageText);
+                            }
+
                             cleaned = processFrontendLoraWeights(cleaned, loraStrengthVal);
                             cleaned = cleaned.replace(/,(?:\s*,)+/g, ",");
                             cleaned = cleaned.trim().replace(/^,|,$/g, "").trim();
 
                             if (isPositive && str === targetPromptTemplate) {
                                 const addParts = [];
+                                if (ageText && !hasAgePlaceholder) addParts.push(ageText);
                                 if (clothesText && !hasClothesPlaceholder) addParts.push(clothesText);
                                 if (modText && !hasModPlaceholder) addParts.push(modText);
+                                if (loraText && !hasLoraPlaceholder) addParts.push(loraText);
                                 if (conceptText && !hasConceptPlaceholder) addParts.push(conceptText);
                                 if (addParts.length > 0) {
                                     const joined = addParts.join(", ");
@@ -340,19 +430,38 @@ app.registerExtension({
                         node.currentSeedValue = (targetSeed !== undefined && targetSeed !== null && targetSeed !== "") ? String(targetSeed) : "None";
 
                         node.detectedLoraNames = [];
-                        let rawCombinedText = `${targetPromptTemplate} ${clothesText} ${modText} ${styleConfig.negative_prompt || ""}`;
-                        rawCombinedText = rawCombinedText.replace(/{epoch}/g, activeEpochVal).replace(/{kw_str}/g, kwValStr).replace(/{concept}/g, conceptText).replace(/{clothes}/g, clothesText).replace(/{mod}/g, modText);
+                        const rawCombinedText = `${targetPromptTemplate} ${ageText} ${clothesText} ${modText} ${loraText} ${styleConfig.negative_prompt || ""}`;
+                        const processedCombinedText = rawCombinedText
+                            .replace(/{epoch}/g, activeEpochVal)
+                            .replace(/{kw_str}/g, kwValStr)
+                            .replace(/{concept}/g, conceptText)
+                            .replace(/{clothes}/g, clothesText)
+                            .replace(/{mod}/g, modText)
+                            .replace(/{lora}/g, loraText)
+                            .replace(/{age}/g, ageText);
 
                         const loraRegex = /<lora:([^:]+)(?::[^>]+)?>/g;
                         const embedRegex = /[^a-zA-Z0-9_-]?embedding:([a-zA-Z0-9_.-]+)/g;
                         let match;
-                        while ((match = loraRegex.exec(rawCombinedText)) !== null) {
+                        const uniqueDeps = new Set();
+
+                        while ((match = loraRegex.exec(processedCombinedText)) !== null) {
                             if (match[1]) {
-                                node.detectedLoraNames.push({ type: "lora", text: `LoRa: ${match[1]}` });
+                                const entry = `LoRa: ${match[1].trim()}`;
+                                if (!uniqueDeps.has(entry)) {
+                                    uniqueDeps.add(entry);
+                                    node.detectedLoraNames.push({ type: "lora", text: entry });
+                                }
                             }
                         }
-                        while ((match = embedRegex.exec(rawCombinedText)) !== null) {
-                            if (match[1]) node.detectedLoraNames.push({ type: "embed", text: `Emb: ${match[1]}` });
+                        while ((match = embedRegex.exec(processedCombinedText)) !== null) {
+                            if (match[1]) {
+                                const entry = `Emb: ${match[1].trim()}`;
+                                if (!uniqueDeps.has(entry)) {
+                                    uniqueDeps.add(entry);
+                                    node.detectedLoraNames.push({ type: "embed", text: entry });
+                                }
+                            }
                         }
 
                         if (styleConfig.name && styleConfig.name.includes("⚠️ ERROR IN")) {
@@ -406,6 +515,10 @@ app.registerExtension({
                                     .replace(/\s+/g, '_');
                             }
 
+                            const cleanAge = (selectedAgeKey && selectedAgeKey !== "none")
+                                ? selectedAgeKey.toLowerCase().replace(/\s+/g, '_')
+                                : "";
+
                             const cleanClothes = (selectedClothesKey && selectedClothesKey !== "none")
                                 ? selectedClothesKey.toLowerCase().replace(/\s+/g, '_')
                                 : "";
@@ -428,45 +541,62 @@ app.registerExtension({
                                 ext = baseThumb.substring(lastDotIdx);
                             }
 
-                            const candidateThumbnails = [];
+                            const rawCandidates = [];
 
                             const epochOptions = cleanEpochStr ? [cleanEpochStr, ""] : [""];
                             const versionOptions = cleanVer ? [cleanVer, ""] : [""];
+                            const ageOptions = cleanAge ? [cleanAge, ""] : [""];
 
-                            // Candidate lookup pattern: base_epoch_version_clothes_mod_concept
                             for (const e of epochOptions) {
                                 for (const v of versionOptions) {
-                                    if (cleanClothes && cleanMod && cleanConcept) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanClothes, cleanMod, cleanConcept].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    if (cleanClothes && cleanMod) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanClothes, cleanMod].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    if (cleanClothes && cleanConcept) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanClothes, cleanConcept].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    if (cleanMod && cleanConcept) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanMod, cleanConcept].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    if (cleanClothes) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanClothes].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    if (cleanMod) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanMod].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    if (cleanConcept) {
-                                        candidateThumbnails.push(`${[baseName, e, v, cleanConcept].filter(Boolean).join("_")}${ext}`);
-                                    }
-                                    const pBase = [baseName, e, v].filter(Boolean);
-                                    if (pBase.length > 1 || pBase[0] !== baseName) {
-                                        candidateThumbnails.push(`${pBase.join("_")}${ext}`);
+                                    for (const a of ageOptions) {
+                                        if (cleanClothes && cleanMod && cleanConcept && a) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanClothes, cleanMod, cleanConcept, a].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanClothes && cleanMod && a) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanClothes, cleanMod, a].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanClothes && a) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanClothes, a].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanMod && cleanConcept && a) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanMod, cleanConcept, a].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanMod && a) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanMod, a].filter(Boolean).join("_")}${ext}`);
+                                        }
+
+                                        if (cleanClothes && cleanMod && cleanConcept) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanClothes, cleanMod, cleanConcept].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanClothes && cleanMod) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanClothes, cleanMod].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanClothes) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanClothes].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanMod) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanMod].filter(Boolean).join("_")}${ext}`);
+                                        }
+                                        if (cleanConcept) {
+                                            rawCandidates.push(`${[baseName, e, v, cleanConcept].filter(Boolean).join("_")}${ext}`);
+                                        }
+
+                                        if (a) {
+                                            rawCandidates.push(`${[baseName, e, v, a].filter(Boolean).join("_")}${ext}`);
+                                        }
+
+                                        const pBase = [baseName, e, v].filter(Boolean);
+                                        if (pBase.length > 1 || pBase[0] !== baseName) {
+                                            rawCandidates.push(`${pBase.join("_")}${ext}`);
+                                        }
                                     }
                                 }
                             }
 
-                            candidateThumbnails.push(baseThumb);
+                            rawCandidates.push(baseThumb);
 
-                            const uniqueCandidates = [...new Set(candidateThumbnails)];
+                            const uniqueCandidates = [...new Set(rawCandidates)];
                             node.expectedThumbnailFile = uniqueCandidates[0];
 
                             if (thumbnailWidget) {
@@ -525,6 +655,7 @@ app.registerExtension({
                     assignWidgetCallback(characterWidget);
                     assignWidgetCallback(epochWidget);
                     assignWidgetCallback(versionWidget);
+                    assignWidgetCallback(ageWidget);
                     assignWidgetCallback(clothesWidget);
                     assignWidgetCallback(modWidget);
                     assignWidgetCallback(conceptWidget);
