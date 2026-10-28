@@ -1,0 +1,76 @@
+[
+  {
+    "name": "Sakura / Shrine Maiden",
+    "category": "character",
+    "character": "sakura",
+    "prompt": "{prompt}, 1girl, solo, traditional clothes, shrine maiden, {age}, {clothes}, {mod}, {concept}",
+    "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers",
+    "version": {
+      "default": "masterpiece, best quality, highres",
+      "v1_classic": "masterpiece, best quality, mature female, detailed face",
+      "v2_redesign": "masterpiece, best quality, young female, cute expression"
+    },
+    "age": {
+      "default": "18yo",
+      "v1_classic": "22yo",
+      "v2_redesign": "16yo"
+    },
+    "concept": {
+      "cyberpunk": {
+        "v1_classic": "neon lights, cyberpunk city background, glowing tattoos",
+        "v2_redesign": "neon visor, futuristic accessories, techwear"
+      },
+      "fantasy": "magical forest background, glowing particles, elven ears"
+    },
+    "clothes": {
+      "casual": {
+        "v1_classic": "footwear, short sleeves, shirt, skirt",
+        "v2_redesign": "footwear, long sleeves, red shirt, pants"
+      },
+      "sleepwear": {
+        "v1_classic": "nightgown, sleepwear, short sleeves, barefoot",
+        "v2_redesign": "shirt, short sleeves, barefoot"
+      },
+      "business": "business costume, formal wear"
+    },
+    "mod": {
+      "Sci-Fi": {
+        "v1_classic": "futuristic, cyberpunk theme",
+        "v2_redesign": "sci-fi armor, glowing circuits"
+      },
+      "Anime": "anime style, vibrant colors, cell shaded"
+    },
+    "lora": {
+      "default": "<lora:sakura_epoch01:0.8>"
+    },
+    "thumbnail": "sakura_shrine_maiden.png",
+    "comment": "Default character profile with nested subversion examples.",
+    "seed": 12345678,
+    "params": {
+      "steps": 25,
+      "cfg": 7.5
+    }
+  },
+  {
+    "name": "Aria / Cyber Hacker",
+    "category": "character",
+    "character": "aria",
+    "prompt": "{prompt}, 1girl, solo, cyberpunk attire, tech goggles, {clothes}, {mod}",
+    "negative_prompt": "blurry, low quality",
+    "version": {
+      "default": "masterpiece, highly detailed"
+    },
+    "clothes": {
+      "combat": "tactical jacket, cargo pants, combat boots",
+      "casual": "hoodie, jeans, sneakers"
+    },
+    "mod": {
+      "Neon": "neon lighting, cyberpunk aesthetic",
+      "Dark": "dark atmosphere, dramatic shadows"
+    },
+    "lora": "<lora:aria_v2:1.0>",
+    "thumbnail": "aria_cyber_hacker.png",
+    "comment": "Simple character profile without age keys.",
+    "seed": 87654321
+  }
+]
