@@ -2,7 +2,7 @@
 ===============================================================================
 Module: Easy Styles Selector (minimal)
 File: easy_styles_selector.py
-Version: 3.2.2
+Version: 3.2.7
 ===============================================================================
 """
 
@@ -100,7 +100,7 @@ def load_flat_container_styles():
 
 class CustomStylesSelector:
     """
-    ComfyUI Node Class v3.2.1
+    ComfyUI Node Class v3.2.7
     """
     @classmethod
     def INPUT_TYPES(cls):
@@ -120,6 +120,11 @@ class CustomStylesSelector:
                 for k in ver.keys():
                     if k not in version_list:
                         version_list.append(k)
+
+        default_thumb = "none.png"
+        if all_styles and all_styles[0].get("thumbnail"):
+            default_thumb = all_styles[0].get("thumbnail")
+        initial_thumb_path = os.path.join(THUMBNAILS_DIR, default_thumb)
 
         return {
             "required": {
@@ -155,7 +160,9 @@ class CustomStylesSelector:
                 }),
             },
             "hidden": {
-                "styles_inventory": ("STRING", {"default": json.dumps(all_styles)})
+                "styles_inventory": ("STRING", {"default": json.dumps(all_styles)}),
+                "thumbnails_dir": ("STRING", {"default": THUMBNAILS_DIR}),
+                "thumbnail_path": ("STRING", {"default": initial_thumb_path})
             }
         }
 
@@ -225,7 +232,7 @@ class CustomStylesSelector:
 
         return re.sub(r'<lora:([^>]+)>', parse_individual_lora_tag, text)
 
-    def apply_style(self, select_category, select_style, lora_strength, remove_dependencies, version="default", positive="", negative=""):
+    def apply_style(self, select_category, select_style, lora_strength, remove_dependencies, version="default", positive="", negative="", thumbnail_path=""):
         if "⚠️ ERROR IN" in select_style:
             return (positive, negative)
 
@@ -246,15 +253,11 @@ class CustomStylesSelector:
 
         style_negative = style_data.get("negative_prompt", "")
 
-        # 1. Process LoRa weights on style template first
         style_positive = self.process_lora_weights(style_positive, lora_strength)
 
-        # 2. Handle prompt placement BEFORE dependency stripping
         clean_pos_in = positive.strip() if positive else ""
 
-        # If removing dependencies, clean the style text before combining
         if remove_dependencies:
-            # Tokenize or preserve {prompt} explicit placement marker during cleaning
             has_prompt_tag = "{prompt}" in style_positive
             if has_prompt_tag:
                 style_positive = style_positive.replace("{prompt}", "___PROMPT_TOKEN___")
@@ -265,13 +268,11 @@ class CustomStylesSelector:
             if has_prompt_tag:
                 style_positive = style_positive.replace("___PROMPT_TOKEN___", "{prompt}")
 
-        # 3. Perform final string substitution based on exact template
         if "{prompt}" in style_positive:
             final_positive = style_positive.replace("{prompt}", clean_pos_in)
         else:
             final_positive = f"{clean_pos_in}, {style_positive}" if clean_pos_in else style_positive
 
-        # 4. Merge style into negative input
         clean_neg_in = negative.strip() if negative else ""
         final_negative = f"{clean_neg_in}, {style_negative}" if clean_neg_in and style_negative else (
             style_negative if style_negative else clean_neg_in)
