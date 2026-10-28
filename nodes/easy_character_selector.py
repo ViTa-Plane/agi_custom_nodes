@@ -2,13 +2,22 @@
 ===============================================================================
 Module: Easy Character Selector
 File: easy_character_selector.py
-Version: 2.7.2
+Version: 2.8.8
 ===============================================================================
 """
 import os
 import json
 import re
+from aiohttp import web
 from server import PromptServer
+import folder_paths
+
+# Set to False to silence console debug messages and warnings
+DEBUG_MODE = True
+
+def dprint(*args, **kwargs):
+    if DEBUG_MODE:
+        print(*args, **kwargs)
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 STYLES_ROOT_DIR = os.path.join(CURRENT_DIR, "character_packs")
@@ -28,6 +37,48 @@ try:
     )
 except Exception:
     pass
+
+
+async def check_lora_exists(request):
+    lora_query = request.query.get("name", "").strip()
+    if not lora_query:
+        return web.json_response({"exists": False})
+
+    try:
+        available_loras = folder_paths.get_filename_list("loras")
+    except Exception as e:
+        dprint(f"[Easy Character Selector] Error accessing folder_paths: {e}")
+        available_loras = []
+
+    def clean_filename(filename_str):
+        norm = filename_str.replace("\\", "/").strip().lower()
+        base = os.path.basename(norm)
+        for ext in [".safetensors", ".ckpt", ".pt"]:
+            if base.endswith(ext):
+                base = base[:-len(ext)]
+                break
+        return base, norm
+
+    clean_query_base, clean_query_full = clean_filename(lora_query)
+
+    exists = False
+    for lora in available_loras:
+        lora_base, lora_full = clean_filename(lora)
+        if clean_query_base == lora_base or clean_query_full == lora_full or lora_full.endswith("/" + clean_query_full):
+            exists = True
+            break
+
+    if not exists:
+        dprint(f"\033[91m[Easy Character Selector] ⚠️ LoRa NOT FOUND in ComfyUI folders -> '{lora_query}'\033[0m")
+
+    return web.json_response({"exists": exists, "query": lora_query})
+
+
+try:
+    routes = PromptServer.instance.app.router
+    routes.add_get("/agi_characters_check_lora", check_lora_exists)
+except Exception as err:
+    dprint(f"[Easy Character Selector] Failed to bind endpoint route: {err}")
 
 
 def load_flat_container_styles():
@@ -64,37 +115,27 @@ def load_flat_container_styles():
                         if not isinstance(nested_params, dict):
                             nested_params = {}
 
-                        clothes_dict = {}
-                        raw_clothes = item.get("clothes")
-                        if isinstance(raw_clothes, dict):
-                            clothes_dict = {str(k).strip(): str(v).strip() for k, v in raw_clothes.items()}
+                        def parse_flexible_map(raw_map):
+                            if isinstance(raw_map, dict):
+                                cleaned_map = {}
+                                for k, v in raw_map.items():
+                                    clean_k = str(k).strip()
+                                    if isinstance(v, dict):
+                                        cleaned_map[clean_k] = {str(sub_k).strip(): str(sub_v).strip() for sub_k, sub_v in v.items()}
+                                    else:
+                                        cleaned_map[clean_k] = str(v).strip()
+                                return cleaned_map
+                            elif isinstance(raw_map, list):
+                                return {str(elem).strip(): str(elem).strip() for elem in raw_map}
+                            elif isinstance(raw_map, str) and raw_map.strip():
+                                return {"default": raw_map.strip()}
+                            return {}
 
-                        mod_dict = {}
-                        raw_mods = item.get("mod")
-                        if isinstance(raw_mods, dict):
-                            mod_dict = {str(k).strip(): str(v).strip() for k, v in raw_mods.items()}
-                        elif isinstance(raw_mods, list):
-                            mod_dict = {str(elem).strip(): str(elem).strip() for elem in raw_mods}
-                        elif isinstance(raw_mods, str) and raw_mods.strip():
-                            mod_dict = {"default": raw_mods.strip()}
-
-                        lora_dict = {}
-                        raw_loras = item.get("lora")
-                        if isinstance(raw_loras, dict):
-                            lora_dict = {str(k).strip(): str(v).strip() for k, v in raw_loras.items()}
-                        elif isinstance(raw_loras, list):
-                            lora_dict = {str(elem).strip(): str(elem).strip() for elem in raw_loras}
-                        elif isinstance(raw_loras, str) and raw_loras.strip():
-                            lora_dict = {"default": raw_loras.strip()}
-
-                        age_dict = {}
-                        raw_ages = item.get("age")
-                        if isinstance(raw_ages, dict):
-                            age_dict = {str(k).strip(): str(v).strip() for k, v in raw_ages.items()}
-                        elif isinstance(raw_ages, list):
-                            age_dict = {str(elem).strip(): str(elem).strip() for elem in raw_ages}
-                        elif isinstance(raw_ages, str) and raw_ages.strip():
-                            age_dict = {"default": raw_ages.strip()}
+                        clothes_dict = parse_flexible_map(item.get("clothes"))
+                        mod_dict = parse_flexible_map(item.get("mod"))
+                        lora_dict = parse_flexible_map(item.get("lora"))
+                        age_dict = parse_flexible_map(item.get("age"))
+                        concept_dict = parse_flexible_map(item.get("concept"))
 
                         main_prompt = item.get("prompt", "{prompt}")
 
@@ -105,15 +146,6 @@ def load_flat_container_styles():
 
                         if "default" not in version_dict:
                             version_dict["default"] = main_prompt
-
-                        concept_dict = {}
-                        raw_concepts = item.get("concept")
-                        if isinstance(raw_concepts, dict):
-                            concept_dict = {str(k).strip(): str(v).strip() for k, v in raw_concepts.items()}
-                        elif isinstance(raw_concepts, list):
-                            concept_dict = {str(elem).strip(): str(elem).strip() for elem in raw_concepts}
-                        elif isinstance(raw_concepts, str) and raw_concepts.strip():
-                            concept_dict = {"default": raw_concepts.strip()}
 
                         styles_inventory.append({
                             "name": item.get("name"),
@@ -136,7 +168,7 @@ def load_flat_container_styles():
                         })
                 except Exception as e:
                     error_msg = str(e)
-                    print(f"[Easy Character Selector] Critical Syntax Error parsing container {file}: {error_msg}")
+                    dprint(f"[Easy Character Selector] Critical Syntax Error parsing container {file}: {error_msg}")
 
                     styles_inventory.append({
                         "name": f"⚠️ ERROR IN: {file}",
@@ -158,7 +190,7 @@ def load_flat_container_styles():
                         "file_name": file
                     })
     except Exception as e:
-        print(f"[Easy Character Selector] Directory access error: {e}")
+        dprint(f"[Easy Character Selector] Directory access error: {e}")
 
     styles_inventory.sort(key=lambda x: x["name"].lower())
     return styles_inventory
@@ -177,30 +209,16 @@ class CharacterSelectorV2:
         all_concept_keys = set(["none"])
 
         for item in all_styles:
-            clothes_map = item.get("clothes", {})
-            if isinstance(clothes_map, dict):
-                for k in clothes_map.keys():
-                    all_clothes_keys.add(k)
-
-            mod_map = item.get("mod", {})
-            if isinstance(mod_map, dict):
-                for k in mod_map.keys():
-                    all_mod_keys.add(k)
-
-            version_map = item.get("version", {})
-            if isinstance(version_map, dict):
-                for k in version_map.keys():
-                    all_version_keys.add(k)
-
-            age_map = item.get("age", {})
-            if isinstance(age_map, dict):
-                for k in age_map.keys():
-                    all_age_keys.add(k)
-
-            concept_map = item.get("concept", {})
-            if isinstance(concept_map, dict):
-                for k in concept_map.keys():
-                    all_concept_keys.add(k)
+            for k in item.get("clothes", {}).keys():
+                all_clothes_keys.add(k)
+            for k in item.get("mod", {}).keys():
+                all_mod_keys.add(k)
+            for k in item.get("version", {}).keys():
+                all_version_keys.add(k)
+            for k in item.get("age", {}).keys():
+                all_age_keys.add(k)
+            for k in item.get("concept", {}).keys():
+                all_concept_keys.add(k)
 
         clothing_list = sorted(list(all_clothes_keys))
         mod_list = ["none"] + sorted([m for m in all_mod_keys if m != "none"])
@@ -336,14 +354,35 @@ class CharacterSelectorV2:
 
         return re.sub(r'<lora:([^>]+)>', parse_individual_lora_tag, text)
 
+    def resolve_nested_value(self, field_map, selected_key, version_key):
+        if not field_map or selected_key not in field_map:
+            return ""
+        val = field_map[selected_key]
+        if isinstance(val, dict):
+            if version_key in val:
+                return str(val[version_key]).strip()
+            elif "default" in val:
+                return str(val["default"]).strip()
+            elif val:
+                return str(list(val.values())[0]).strip()
+            return ""
+        elif isinstance(val, str):
+            return val.strip()
+        return ""
+
     def apply_style(self, select_character, **kwargs):
         version_selected = kwargs.get("version", "default")
         age_selected = kwargs.get("age", "none")
         concept_selected = kwargs.get("concept", "none")
         clothing_selected = kwargs.get("clothing", kwargs.get("clothing/mod", kwargs.get("modifier (optional)", "none")))
         mod_selected = kwargs.get("mod", "none")
-        lora_strength = kwargs.get("lora_strength", 1.0)
-        keyword_strength = kwargs.get("keyword_strength", 1.0)
+
+        raw_lora_str = kwargs.get("lora_strength", 1.0)
+        lora_strength = float(raw_lora_str) if raw_lora_str is not None else 1.0
+
+        raw_kw_str = kwargs.get("keyword_strength", 1.0)
+        keyword_strength = float(raw_kw_str) if raw_kw_str is not None else 1.0
+
         epoch_val = kwargs.get("epoch", 1)
         remove_dependencies = kwargs.get("remove_dependencies", False)
         wrap_break = kwargs.get("wrap_break", True)
@@ -371,26 +410,10 @@ class CharacterSelectorV2:
             character_val = style_data.get("character", "misc")
             suppress_val = style_data.get("suppress", "")
 
-            age_text = ""
-            age_dict = style_data.get("age", {})
-            if isinstance(age_dict, dict) and age_selected != "none":
-                if age_selected in age_dict:
-                    age_text = age_dict.get(age_selected, "")
-
-            concept_text = ""
-            concept_dict = style_data.get("concept", {})
-            if isinstance(concept_dict, dict) and concept_selected != "none":
-                concept_text = concept_dict.get(concept_selected, "")
-
-            clothing_text = ""
-            clothes_map = style_data.get("clothes", {})
-            if isinstance(clothes_map, dict) and clothing_selected != "none":
-                clothing_text = clothes_map.get(clothing_selected, "")
-
-            mod_text = ""
-            mod_map = style_data.get("mod", {})
-            if isinstance(mod_map, dict) and mod_selected != "none":
-                mod_text = mod_map.get(mod_selected, "")
+            age_text = self.resolve_nested_value(style_data.get("age", {}), age_selected, version_selected)
+            concept_text = self.resolve_nested_value(style_data.get("concept", {}), concept_selected, version_selected)
+            clothing_text = self.resolve_nested_value(style_data.get("clothes", {}), clothing_selected, version_selected)
+            mod_text = self.resolve_nested_value(style_data.get("mod", {}), mod_selected, version_selected)
 
             lora_text = ""
             lora_map = style_data.get("lora", {})
