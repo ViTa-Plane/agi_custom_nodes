@@ -37,21 +37,29 @@ app.registerExtension({
                     }
                 }
 
-                // Function to populate available nodes in the graph
+                // Function to populate and numerically sort available nodes in the graph
                 const updateNodeList = () => {
                     hideNodeIdWidget(); // Ensure it stays hidden during updates
                     if (!app.graph || !app.graph._nodes) return;
 
-                    let nodeChoices = ["none"];
                     const nodeMap = {};
+                    const nodeList = [];
 
                     app.graph._nodes.forEach(n => {
                         // Skip itself to avoid recursive loops
                         if (n.id === node.id) return;
                         const title = n.title || n.type || "Node";
                         const label = `${n.id}: ${title}`;
-                        nodeChoices.push(label);
+                        nodeList.push({ id: n.id, label: label });
                         nodeMap[label] = n.id;
+                    });
+
+                    // Sort nodes numerically by their ID
+                    nodeList.sort((a, b) => a.id - b.id);
+
+                    let nodeChoices = ["none"];
+                    nodeList.forEach(item => {
+                        nodeChoices.push(item.label);
                     });
 
                     targetNodeWidget.options.values = nodeChoices;
