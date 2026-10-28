@@ -2,8 +2,8 @@
  * ===============================================================================
  * Extension: Easy Styles Selector
  * File: easy_styles_selector.js
- * Version: 3.3.1
- * Description: Frontend canvas UI extension for 'Easy Styles Selector' node.
+ * Version: 3.3.10
+ * Description: Frontend canvas UI extension for 'Easy Styles Selector' node with live weight preview updates.
  * ===============================================================================
  */
 
@@ -24,8 +24,18 @@ app.registerExtension({
                 node.debugStatus = "Initializing...";
                 node.attemptedPath = "";
 
-                node.activeThumbnailFile = "";   // File currently being rendered
-                node.expectedThumbnailFile = ""; // Expected target filename based on version selection
+                node.activeThumbnailFile = "";
+                node.expectedThumbnailFile = "";
+
+                let thumbWidget = node.widgets?.find(w => w.name === "thumbnail_path");
+                if (!thumbWidget) {
+                    thumbWidget = node.addWidget("text", "thumbnail_path", "none.png", () => {}, { serialize: true });
+                }
+                if (thumbWidget) {
+                    thumbWidget.type = "hidden";
+                    thumbWidget.computeSize = () => [0, -4];
+                    thumbWidget.draw = () => {};
+                }
 
                 node.currentStyleName = "None";
                 node.currentPositiveText = "";
@@ -38,13 +48,11 @@ app.registerExtension({
                 node.currentThumbnailFile = "None";
                 node.seedCopyFeedback = false;
 
-                // Tooltip State
                 node.isHoveringThumb = false;
                 node.mousePos = [0, 0];
 
-                node.size = [350, 385];
+                node.size = [350, 385]; // Restored original height since widget is hidden
 
-                // Frontend widget tooltips
                 const tooltipsMap = {
                     "select_category": "Filter styles by category grouping.",
                     "select_style": "Select a style preset from the available JSON configurations.",
@@ -82,6 +90,10 @@ app.registerExtension({
                     const categoryWidget = node.widgets?.find(w => w.name === "select_category");
                     const styleWidget = node.widgets?.find(w => w.name === "select_style");
                     const versionWidget = node.widgets?.find(w => w.name === "version");
+                    const loraStrengthWidget = node.widgets?.find(w => w.name === "lora_strength");
+                    const thumbnailsDirWidget = node.widgets?.find(w => w.name === "thumbnails_dir");
+                    const thumbnailPathWidget = node.widgets?.find(w => w.name === "thumbnail_path");
+                    const thumbnailsDir = thumbnailsDirWidget ? thumbnailsDirWidget.value : "";
 
                     if (!categoryWidget || !styleWidget) return;
 
@@ -134,13 +146,55 @@ app.registerExtension({
                             node.currentSourceFile = "None";
                             node.currentThumbnailFile = "None";
                             node.detectedLoraNames = [];
+
+                            if (thumbnailPathWidget) {
+                                thumbnailPathWidget.value = thumbnailsDir ? `${thumbnailsDir}/none.png` : "none.png";
+                            }
                             app.canvas.setDirty(true, true);
                             return;
                         }
 
+                        const loraStrengthVal = loraStrengthWidget ? (parseFloat(loraStrengthWidget.value) || 1.0) : 1.0;
+
+                        const processFrontendLoraWeights = (text, weightVal) => {
+                            if (!text) return "";
+                            return text.replace(/<lora:([^>]+)>/g, (match, innerContent) => {
+                                if (innerContent.includes("{weight}")) {
+                                    const formattedWeight = weightVal.toFixed(2);
+                                    const replacedContent = innerContent.replace(/{weight}/g, formattedWeight);
+                                    const parts = replacedContent.split(":");
+                                    const processedParts = [parts[0]];
+                                    const origParts = innerContent.split(":");
+
+                                    for (let idx = 1; idx < parts.length; idx++) {
+                                        if (idx < origParts.length && origParts[idx] === "{weight}") {
+                                            processedParts.push(parts[idx]);
+                                        } else {
+                                            const num = parseFloat(parts[idx]);
+                                            processedParts.push(!isNaN(num) ? (num * weightVal).toFixed(2) : parts[idx]);
+                                        }
+                                    }
+                                    return `<lora:${processedParts.join(":")}>`;
+                                }
+
+                                const parts = innerContent.split(":");
+                                if (parts.length >= 2) {
+                                    const processedParts = [parts[0]];
+                                    for (let idx = 1; idx < parts.length; idx++) {
+                                        const num = parseFloat(parts[idx]);
+                                        processedParts.push(!isNaN(num) ? (num * weightVal).toFixed(2) : parts[idx]);
+                                    }
+                                    return `<lora:${processedParts.join(":")}>`;
+                                }
+
+                                return match;
+                            });
+                        };
+
                         const cleanUIString = (str) => {
                             if (!str) return "";
-                            let cleaned = String(str).replace(/{prompt}/g, "").replace(/{kw_str}/g, "").replace(/{weight}/g, "");
+                            let cleaned = String(str).replace(/{prompt}/g, "").replace(/{kw_str}/g, "").replace(/{weight}/g, loraStrengthVal.toFixed(2));
+                            cleaned = processFrontendLoraWeights(cleaned, loraStrengthVal);
                             cleaned = cleaned.replace(/,(?:\s*,)+/g, ",");
                             return cleaned.trim().replace(/^,|,$/g, "").trim();
                         };
@@ -188,11 +242,35 @@ app.registerExtension({
                             if (match[1]) node.detectedLoraNames.push({ type: "embed", text: `Emb: ${match[1]}` });
                         }
 
+                        let requiredFileName = "none.png";
+                        if (styleConfig.thumbnail) {
+                            const baseThumb = styleConfig.thumbnail;
+                            let cleanVer = "";
+                            if (versionWidget && versionWidget.options && versionWidget.options.values) {
+                                const vIndex = versionWidget.options.values.indexOf(selectedVer);
+                                if (vIndex > 0) {
+                                    cleanVer = `v${vIndex}`;
+                                }
+                            }
+                            let baseName = baseThumb;
+                            let ext = "";
+                            const lastDotIdx = baseThumb.lastIndexOf(".");
+                            if (lastDotIdx !== -1) {
+                                baseName = baseThumb.substring(0, lastDotIdx);
+                                ext = baseThumb.substring(lastDotIdx);
+                            }
+                            requiredFileName = cleanVer ? `${baseName}_${cleanVer}${ext}` : baseThumb;
+                        }
+
+                        node.expectedThumbnailFile = requiredFileName;
+                        if (thumbnailPathWidget) {
+                            thumbnailPathWidget.value = thumbnailsDir ? `${thumbnailsDir}/${requiredFileName}` : requiredFileName;
+                        }
+
                         if (styleConfig.name && styleConfig.name.includes("⚠️ ERROR IN")) {
                             node.previewImage = null;
                             node.previewImageLoaded = false;
                             node.activeThumbnailFile = "";
-                            node.expectedThumbnailFile = "";
                             node.debugStatus = "JSON Syntax Error Block";
                             node.attemptedPath = "";
                             node.currentCommentText = styleConfig.comment || "None";
@@ -200,7 +278,6 @@ app.registerExtension({
                             return;
                         }
 
-                        // Fallback function when custom thumbnail variants fail
                         const tryNoneFallback = (attemptedFileName) => {
                             const nonePath = `/agi_styles_thumbnails/none.png`;
                             const noneImg = new Image();
@@ -226,30 +303,7 @@ app.registerExtension({
                         };
 
                         if (styleConfig.thumbnail) {
-                            const baseThumb = styleConfig.thumbnail;
-
-                            // Map selected version to index code (v1, v2, v3...) based on dropdown position
-                            let cleanVer = "";
-                            if (versionWidget && versionWidget.options && versionWidget.options.values) {
-                                const vIndex = versionWidget.options.values.indexOf(selectedVer);
-                                if (vIndex > 0) { // Index 0 is "default"
-                                    cleanVer = `v${vIndex}`;
-                                }
-                            }
-
-                            let baseName = baseThumb;
-                            let ext = "";
-                            const lastDotIdx = baseThumb.lastIndexOf(".");
-                            if (lastDotIdx !== -1) {
-                                baseName = baseThumb.substring(0, lastDotIdx);
-                                ext = baseThumb.substring(lastDotIdx);
-                            }
-
-                            const candidateThumbnails = [];
-                            if (cleanVer) candidateThumbnails.push(`${baseName}_${cleanVer}${ext}`);
-                            candidateThumbnails.push(baseThumb);
-
-                            node.expectedThumbnailFile = candidateThumbnails[0];
+                            const candidateThumbnails = [node.expectedThumbnailFile, styleConfig.thumbnail];
 
                             const loadThumbnailCascade = (index) => {
                                 if (index >= candidateThumbnails.length) {
@@ -283,7 +337,6 @@ app.registerExtension({
 
                             loadThumbnailCascade(0);
                         } else {
-                            node.expectedThumbnailFile = "none.png";
                             tryNoneFallback("none.png");
                         }
                     };
@@ -291,6 +344,9 @@ app.registerExtension({
                     categoryWidget.callback = filterStylesByCategory;
                     styleWidget.callback = updateVersionDropdown;
                     if (versionWidget) versionWidget.callback = updateCanvasThumbnail;
+                    if (loraStrengthWidget) {
+                        loraStrengthWidget.callback = updateCanvasThumbnail;
+                    }
                     filterStylesByCategory();
                 }
 
@@ -303,9 +359,8 @@ app.registerExtension({
                 setTimeout(syncStylesData, 100);
             };
 
-            // Detect Mouse Hover over Thumbnail
             nodeType.prototype.onMouseMove = function (e, local_pos) {
-                const startY = 180;
+                const startY = 180; // Restored original vertical alignment
                 const padding = 14;
                 const thumbSize = 110;
 
@@ -325,7 +380,7 @@ app.registerExtension({
             };
 
             nodeType.prototype.onMouseDown = function (e, local_pos) {
-                if (local_pos[1] >= 300 && local_pos[1] <= 360 && local_pos[0] >= 210) {
+                if (local_pos[1] >= 302 && local_pos[1] <= 372 && local_pos[0] >= 210) { // Restored metadataTopY = 302
                     if (this.currentSeedValue && this.currentSeedValue !== "None" && this.currentSeedValue !== "ERROR") {
                         navigator.clipboard.writeText(this.currentSeedValue);
                         this.seedCopyFeedback = true;
@@ -341,7 +396,7 @@ app.registerExtension({
             nodeType.prototype.onDrawBackground = function(ctx) {
                 if (this.flags.collapsed) return;
 
-                const startY = 180;
+                const startY = 180; // Restored original vertical alignment
                 const padding = 14;
                 const thumbSize = 110;
                 const textStartX = padding + thumbSize + 20;
@@ -437,8 +492,7 @@ app.registerExtension({
                     }
                 }
 
-                // 1. Comment
-                const metadataTopY = 302;
+                const metadataTopY = 302; // Restored original vertical alignment
                 ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
                 ctx.beginPath();
                 ctx.roundRect(padding, metadataTopY, this.size[0] - (padding * 2), 70, 4);
@@ -457,7 +511,6 @@ app.registerExtension({
                 const hasValidSeed = (!isJsonError && this.currentSeedValue && this.currentSeedValue !== "None");
                 drawWrappedText(this.currentCommentText || "None", padding + 8, metadataTopY + 22, 3, hasValidSeed ? 180 : 310);
 
-                // 2. Seed
                 if (hasValidSeed) {
                     const seedX = padding + 202;
                     ctx.fillStyle = "#ffcc00";
@@ -475,7 +528,6 @@ app.registerExtension({
                     }
                 }
 
-                // 3. Divider Line
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
                 ctx.lineWidth = 1;
                 ctx.beginPath();
@@ -483,17 +535,12 @@ app.registerExtension({
                 ctx.lineTo(this.size[0] - padding - 6, metadataTopY + 47);
                 ctx.stroke();
 
-                // 4. Footer Paths
                 const maxFooterWidth = this.size[0] - (padding * 2) - 16;
                 ctx.fillStyle = isJsonError ? "#ff5555" : "#777788";
                 ctx.font = "italic 7px sans-serif";
                 drawTruncatedText(`Source Configuration: easy_styles/${this.currentSourceFile}`, padding + 8, metadataTopY + 56, maxFooterWidth);
+                drawTruncatedText(`frontend version 3.3.10`, padding + 8, metadataTopY + 65, maxFooterWidth);
 
-                // ctx.fillStyle = isJsonError ? "#ff5555" : (this.previewImageLoaded ? "#777788" : "#ffaa44");
-                // drawTruncatedText(`Thumbnail Target: easy_styles/thumbnails/${this.currentThumbnailFile}`, padding + 8, metadataTopY + 65, maxFooterWidth);
-                drawTruncatedText(`frontend version 3.3.1`, padding + 8, metadataTopY + 65, maxFooterWidth);
-
-                // --- TOOLTIP DRAWING LOGIC ---
                 if (this.isHoveringThumb && (this.activeThumbnailFile || this.expectedThumbnailFile)) {
                     ctx.font = "bold 9px sans-serif";
 
@@ -521,11 +568,9 @@ app.registerExtension({
                     ctx.fill();
                     ctx.stroke();
 
-                    // Line 1: Currently rendered file
                     ctx.fillStyle = "#ffffff";
                     ctx.fillText(line1, tooltipX + 8, tooltipY + 12);
 
-                    // Line 2: Missing expected filename
                     if (line2) {
                         ctx.fillStyle = "#ff7c43";
                         ctx.fillText(line2, tooltipX + 8, tooltipY + 25);
