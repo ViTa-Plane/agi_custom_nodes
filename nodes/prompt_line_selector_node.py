@@ -5,9 +5,12 @@ from aiohttp import web
 from server import PromptServer
 # v5.4
 NODE_ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROMPTS_ROOT_DIR = os.path.join(CURRENT_DIR, "prompts")
 
 def get_prompts_dir():
-    prompts_dir = os.path.join(NODE_ROOT_DIR, "prompts")
+    # prompts_dir = os.path.join(NODE_ROOT_DIR, "prompts")
+    prompts_dir = os.path.join(CURRENT_DIR, "prompts")
     os.makedirs(prompts_dir, exist_ok=True)
     return prompts_dir
 
