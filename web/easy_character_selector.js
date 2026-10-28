@@ -2,11 +2,19 @@
  * ===============================================================================
  * Extension: Easy Character Selector
  * File: easy_character_selector.js
- * Version: 2.7.2
+ * Version: 2.8.8
  * Description: Frontend canvas UI extension for 'Easy Character Selector' node.
  * ===============================================================================
  */
 import { app } from "/scripts/app.js";
+
+const DEBUG_MODE = true; // Set to false to silence frontend debug logs
+
+function dlog(...args) {
+    if (DEBUG_MODE) {
+        console.log(...args);
+    }
+}
 
 app.registerExtension({
     name: "agi.CharacterSelectorV2.Extension",
@@ -98,6 +106,24 @@ app.registerExtension({
                     }
                 };
 
+                const resolveNestedValue = (fieldMap, selectedKey, versionKey) => {
+                    if (!fieldMap || !fieldMap[selectedKey]) return "";
+                    const val = fieldMap[selectedKey];
+                    if (typeof val === "object" && val !== null) {
+                        if (val[versionKey] !== undefined) {
+                            return String(val[versionKey]).trim();
+                        } else if (val["default"] !== undefined) {
+                            return String(val["default"]).trim();
+                        } else {
+                            const vals = Object.values(val);
+                            return vals.length > 0 ? String(vals[0]).trim() : "";
+                        }
+                    } else if (typeof val === "string") {
+                        return val.trim();
+                    }
+                    return "";
+                };
+
                 function syncStylesData() {
                     let stylesArray = [];
                     try {
@@ -112,7 +138,7 @@ app.registerExtension({
                             stylesArray = typeof rawVal === "string" ? JSON.parse(rawVal) : rawVal;
                         }
                     } catch(e) {
-                        console.error("[Easy Character Selector Sync Error]", e);
+                        dlog("[Easy Character Selector Sync Error]", e);
                     }
 
                     if (!Array.isArray(stylesArray)) stylesArray = [];
@@ -287,28 +313,16 @@ app.registerExtension({
                         }
 
                         const selectedAgeKey = ageWidget ? ageWidget.value : "none";
-                        let ageText = "";
-                        if (selectedAgeKey && selectedAgeKey !== "none" && styleConfig.age) {
-                            ageText = styleConfig.age[selectedAgeKey] || "";
-                        }
+                        const ageText = resolveNestedValue(styleConfig.age, selectedAgeKey, selectedVersionKey);
 
                         const selectedConceptKey = conceptWidget ? conceptWidget.value : "none";
-                        let conceptText = "";
-                        if (selectedConceptKey && selectedConceptKey !== "none" && styleConfig.concept) {
-                            conceptText = styleConfig.concept[selectedConceptKey] || "";
-                        }
+                        const conceptText = resolveNestedValue(styleConfig.concept, selectedConceptKey, selectedVersionKey);
 
                         const selectedClothesKey = clothesWidget ? clothesWidget.value : "none";
-                        let clothesText = "";
-                        if (selectedClothesKey && selectedClothesKey !== "none" && styleConfig.clothes) {
-                            clothesText = styleConfig.clothes[selectedClothesKey] || "";
-                        }
+                        const clothesText = resolveNestedValue(styleConfig.clothes, selectedClothesKey, selectedVersionKey);
 
                         const selectedModKey = modWidget ? modWidget.value : "none";
-                        let modText = "";
-                        if (selectedModKey && selectedModKey !== "none" && styleConfig.mod) {
-                            modText = styleConfig.mod[selectedModKey] || "";
-                        }
+                        const modText = resolveNestedValue(styleConfig.mod, selectedModKey, selectedVersionKey);
 
                         let loraText = "";
                         if (styleConfig.lora && typeof styleConfig.lora === "object") {
@@ -320,6 +334,8 @@ app.registerExtension({
                                 const loraVals = Object.values(styleConfig.lora);
                                 if (loraVals.length > 0) loraText = loraVals[0];
                             }
+                        } else if (typeof styleConfig.lora === "string") {
+                            loraText = styleConfig.lora;
                         }
 
                         const hasEpochPlaceholder = (
@@ -352,8 +368,13 @@ app.registerExtension({
                             ageText = ageText.replace(/{epoch}/g, activeEpochVal);
                         }
 
-                        const loraStrengthVal = loraStrengthWidget ? (parseFloat(loraStrengthWidget.value) || 1.0) : 1.0;
-                        const kwStrengthVal = keywordStrengthWidget ? (parseFloat(keywordStrengthWidget.value) || 1.0) : 1.0;
+                        const rawLoraVal = loraStrengthWidget ? loraStrengthWidget.value : 1.0;
+                        const parsedLoraStr = (rawLoraVal !== undefined && rawLoraVal !== null) ? parseFloat(rawLoraVal) : NaN;
+                        const loraStrengthVal = !isNaN(parsedLoraStr) ? parsedLoraStr : 1.0;
+
+                        const rawKwVal = keywordStrengthWidget ? keywordStrengthWidget.value : 1.0;
+                        const parsedKwStr = (rawKwVal !== undefined && rawKwVal !== null) ? parseFloat(rawKwVal) : NaN;
+                        const kwStrengthVal = !isNaN(parsedKwStr) ? parsedKwStr : 1.0;
                         const kwValStr = (kwStrengthVal % 1 !== 0) ? kwStrengthVal.toFixed(2).replace(/\.?0+$/, '') : String(Math.floor(kwStrengthVal));
 
                         const cleanUIString = (str, isPositive = true) => {
@@ -430,36 +451,49 @@ app.registerExtension({
                         node.currentSeedValue = (targetSeed !== undefined && targetSeed !== null && targetSeed !== "") ? String(targetSeed) : "None";
 
                         node.detectedLoraNames = [];
-                        const rawCombinedText = `${targetPromptTemplate} ${ageText} ${clothesText} ${modText} ${loraText} ${styleConfig.negative_prompt || ""}`;
-                        const processedCombinedText = rawCombinedText
-                            .replace(/{epoch}/g, activeEpochVal)
-                            .replace(/{kw_str}/g, kwValStr)
-                            .replace(/{concept}/g, conceptText)
-                            .replace(/{clothes}/g, clothesText)
-                            .replace(/{mod}/g, modText)
-                            .replace(/{lora}/g, loraText)
-                            .replace(/{age}/g, ageText);
 
-                        const loraRegex = /<lora:([^:]+)(?::[^>]+)?>/g;
+                        const uncleanedCombined = `${targetPromptTemplate} ${loraText} ${ageText} ${clothesText} ${modText}`;
+                        const loraRawRegex = /<lora:([^:]+)(?::[^>]+)?>/g;
                         const embedRegex = /[^a-zA-Z0-9_-]?embedding:([a-zA-Z0-9_.-]+)/g;
                         let match;
                         const uniqueDeps = new Set();
 
-                        while ((match = loraRegex.exec(processedCombinedText)) !== null) {
+                        while ((match = loraRawRegex.exec(uncleanedCombined)) !== null) {
                             if (match[1]) {
-                                const entry = `LoRa: ${match[1].trim()}`;
+                                const rawLoraName = match[1].replace(/{epoch}/g, activeEpochVal).trim();
+                                const entry = `LoRa: ${rawLoraName}`;
                                 if (!uniqueDeps.has(entry)) {
                                     uniqueDeps.add(entry);
-                                    node.detectedLoraNames.push({ type: "lora", text: entry });
+
+                                    const loraCheckItem = {
+                                        type: "lora",
+                                        text: entry,
+                                        rawName: rawLoraName,
+                                        missing: false
+                                    };
+                                    node.detectedLoraNames.push(loraCheckItem);
+
+                                    fetch(`/agi_characters_check_lora?name=${encodeURIComponent(rawLoraName)}`)
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            if (data && data.exists === false) {
+                                                loraCheckItem.missing = true;
+                                            } else {
+                                                loraCheckItem.missing = false;
+                                            }
+                                            app.canvas.setDirty(true);
+                                        })
+                                        .catch(() => {});
                                 }
                             }
                         }
-                        while ((match = embedRegex.exec(processedCombinedText)) !== null) {
+
+                        while ((match = embedRegex.exec(uncleanedCombined)) !== null) {
                             if (match[1]) {
                                 const entry = `Emb: ${match[1].trim()}`;
                                 if (!uniqueDeps.has(entry)) {
                                     uniqueDeps.add(entry);
-                                    node.detectedLoraNames.push({ type: "embed", text: entry });
+                                    node.detectedLoraNames.push({ type: "embed", text: entry, missing: false });
                                 }
                             }
                         }
@@ -804,8 +838,8 @@ app.registerExtension({
                     currentY += 10.2;
                     for (let k = 0; k < Math.min(this.detectedLoraNames.length, 2); k++) {
                         const item = this.detectedLoraNames[k];
-                        ctx.fillStyle = (item.type === "embed") ? "#a3e26c" : "#ffd8a8";
-                        ctx.fillText(item.text, textStartX + 4, currentY);
+                        ctx.fillStyle = item.missing ? "#ff3333" : ((item.type === "embed") ? "#a3e26c" : "#ffd8a8");
+                        ctx.fillText(item.missing ? `${item.text} ⚠️ [MISSING]` : item.text, textStartX + 4, currentY);
                         currentY += 8.2;
                     }
                 }
